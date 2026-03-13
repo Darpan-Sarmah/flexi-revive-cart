@@ -104,51 +104,54 @@ class FRC_Admin_Analytics {
 		<?php
 
 		$channels    = $filter_channel ? array( $filter_channel ) : array( 'email', 'sms', 'whatsapp', 'push' );
-		$date_where  = '';
-		$date_params = array();
+		$logs_date_where  = '';
+		$carts_date_where = '';
+		$date_params      = array();
 
 		if ( $date_from ) {
-			$date_where   .= ' AND l.sent_at >= %s';
-			$date_params[] = $date_from . ' 00:00:00';
+			$logs_date_where   .= ' AND l.sent_at >= %s';
+			$carts_date_where  .= ' AND c.recovered_at >= %s';
+			$date_params[]      = $date_from . ' 00:00:00';
 		}
 		if ( $date_to ) {
-			$date_where   .= ' AND l.sent_at <= %s';
-			$date_params[] = $date_to . ' 23:59:59';
+			$logs_date_where   .= ' AND l.sent_at <= %s';
+			$carts_date_where  .= ' AND c.recovered_at <= %s';
+			$date_params[]      = $date_to . ' 23:59:59';
 		}
 
 		$rows = array();
 		foreach ( $channels as $channel ) {
-			$params   = array_merge( array( $channel ), $date_params );
-			$query    = $wpdb->prepare(
+			$log_params = array_merge( array( $channel ), $date_params );
+			$log_query  = $wpdb->prepare(
 				"SELECT
 					COUNT(*) AS sent,
 					SUM(CASE WHEN l.status IN ('opened','clicked') THEN 1 ELSE 0 END) AS opened,
 					SUM(CASE WHEN l.status = 'clicked' THEN 1 ELSE 0 END) AS clicked
 				FROM {$wpdb->prefix}frc_email_logs l
-				WHERE l.channel = %s" . $date_where, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-				$params
+				WHERE l.channel = %s" . $logs_date_where, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$log_params
 			);
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$stats = $wpdb->get_row( $query );
+			$stats = $wpdb->get_row( $log_query );
 
 			// Count recovered carts attributed to this channel.
-			$rec_params   = array_merge( array( $channel ), $date_params );
-			$rec_query    = $wpdb->prepare(
+			$rec_params = array_merge( array( $channel ), $date_params );
+			$rec_query  = $wpdb->prepare(
 				"SELECT COUNT(*) AS recovered, COALESCE(SUM(c.cart_total), 0) AS revenue
 				FROM {$wpdb->prefix}frc_abandoned_carts c
 				WHERE c.recovery_channel = %s
-				AND c.status IN ('recovered','converted')" . str_replace( 'l.sent_at', 'c.recovered_at', $date_where ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				AND c.status IN ('recovered','converted')" . $carts_date_where, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$rec_params
 			);
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$rec = $wpdb->get_row( $rec_query );
 
-			$sent            = max( 1, (int) $stats->sent );
+			$sent            = (int) $stats->sent;
 			$conversion_rate = $sent > 0 ? round( ( (int) $rec->recovered / $sent ) * 100, 1 ) : 0;
 
 			$rows[] = array(
 				'channel'   => ucfirst( $channel ),
-				'sent'      => (int) $stats->sent,
+				'sent'      => $sent,
 				'opened'    => (int) $stats->opened,
 				'clicked'   => (int) $stats->clicked,
 				'recovered' => (int) $rec->recovered,

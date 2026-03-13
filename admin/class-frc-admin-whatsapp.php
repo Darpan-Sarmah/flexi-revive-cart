@@ -60,8 +60,12 @@ class FRC_Admin_WhatsApp {
 						<tr>
 							<th><label for="frc-wa-message"><?php esc_html_e( 'Message Template', 'flexi-revive-cart' ); ?></label></th>
 							<td>
+								<?php
+								$default_bulk_tpl = __( 'Hi {user_name}, your cart at {store_name} is waiting! Complete your purchase and get {discount_amount} off with code {discount_code}: {cart_link}', 'flexi-revive-cart' );
+								$bulk_tpl_value   = get_option( 'frc_whatsapp_template_bulk', $default_bulk_tpl );
+								?>
 								<textarea id="frc-wa-message" class="large-text" rows="4"
-									placeholder="<?php esc_attr_e( 'Hi {user_name}, your cart is waiting! Complete now: {cart_link}', 'flexi-revive-cart' ); ?>"><?php echo esc_textarea( get_option( 'frc_whatsapp_template_bulk', __( 'Hi {user_name}, your cart at {store_name} is waiting! Complete your purchase and get {discount_amount} off with code {discount_code}: {cart_link}', 'flexi-revive-cart' ) ) ); ?></textarea>
+									placeholder="<?php esc_attr_e( 'Hi {user_name}, your cart is waiting! Complete now: {cart_link}', 'flexi-revive-cart' ); ?>"><?php echo esc_textarea( $bulk_tpl_value ); ?></textarea>
 								<p class="description">
 									<?php esc_html_e( 'Supported variables:', 'flexi-revive-cart' ); ?>
 									<code>{user_name}</code>, <code>{cart_total}</code>, <code>{cart_link}</code>,

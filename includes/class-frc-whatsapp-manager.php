@@ -82,6 +82,8 @@ class FRC_WhatsApp_Manager {
 	public function send_bulk_campaign( $campaign_name, $message_tpl, $delay_hours = 0 ) {
 		global $wpdb;
 
+		$delay_hours = absint( $delay_hours );
+
 		$where  = "status = 'abandoned' AND opted_out = 0";
 		$params = array();
 

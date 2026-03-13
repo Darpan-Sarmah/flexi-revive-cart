@@ -218,7 +218,7 @@ class FRC_Email_Templates {
 		$defaults = array(
 			'reminder-1' => array(
 				'en' => '<p>Hi {user_name},</p>
-<p>You left some items in your cart at {store_name}. Don\'t worry – we\'ve saved them for you!</p>
+<p>You left some items in your cart at {store_name}. Don&#39;t worry &ndash; we&#39;ve saved them for you!</p>
 {cart_items}
 <p><strong>Total: {cart_total}</strong></p>
 <p><a href="{recovery_link}" style="background:#7f54b3;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Complete Your Purchase</a></p>
