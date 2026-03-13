@@ -73,6 +73,7 @@ class FRC_Admin_Settings {
 		register_setting( 'frc_popup', 'frc_popup_delay_seconds', array( 'sanitize_callback' => 'absint', 'default' => 30 ) );
 		register_setting( 'frc_popup', 'frc_popup_message', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 		register_setting( 'frc_popup', 'frc_popup_button_text', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		register_setting( 'frc_popup', 'frc_browse_followup_hours', array( 'sanitize_callback' => 'absint', 'default' => 2 ) );
 
 		// Compliance.
 		register_setting( 'frc_compliance', 'frc_data_retention_days', array( 'sanitize_callback' => 'absint', 'default' => 90 ) );
@@ -113,6 +114,7 @@ class FRC_Admin_Settings {
 		?>
 		<div class="wrap frc-wrap">
 			<h1><?php esc_html_e( 'Flexi Revive Cart – Settings', 'flexi-revive-cart' ); ?></h1>
+			<?php settings_errors( 'flexi-revive-cart-settings' ); ?>
 
 			<nav class="nav-tab-wrapper frc-tabs">
 				<?php
@@ -381,6 +383,13 @@ class FRC_Admin_Settings {
 			<tr>
 				<th><?php esc_html_e( 'Popup Button Text', 'flexi-revive-cart' ); ?></th>
 				<td><input type="text" name="frc_popup_button_text" value="<?php echo esc_attr( get_option( 'frc_popup_button_text', __( 'Save My Cart', 'flexi-revive-cart' ) ) ); ?>" class="regular-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Browse Abandonment Follow-up (hours)', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_browse_followup_hours" value="<?php echo esc_attr( get_option( 'frc_browse_followup_hours', 2 ) ); ?>" min="1" max="72" class="small-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> />
+					<p class="description"><?php esc_html_e( 'Hours after a product page view before sending a browse abandonment follow-up email.', 'flexi-revive-cart' ); ?></p>
+				</td>
 			</tr>
 		</table>
 		<?php

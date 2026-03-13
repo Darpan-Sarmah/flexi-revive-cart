@@ -26,6 +26,11 @@ class FRC_Admin {
 		add_action( 'wp_ajax_frc_get_chart_data', array( $this, 'ajax_get_chart_data' ) );
 		add_action( 'wp_ajax_frc_delete_cart', array( $this, 'ajax_delete_cart' ) );
 		add_action( 'wp_ajax_frc_resend_reminder', array( $this, 'ajax_resend_reminder' ) );
+
+		// CSV export download (Pro) – runs before headers are sent.
+		if ( FRC_PRO_ACTIVE && class_exists( 'FRC_Export' ) ) {
+			add_action( 'admin_init', array( 'FRC_Export', 'handle_export_request' ) );
+		}
 	}
 
 	/**

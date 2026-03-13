@@ -79,6 +79,7 @@ class FRC_Loader {
 			if ( FRC_PRO_ACTIVE ) {
 				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-email-editor.php';
 				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-ab-results.php';
+				require_once FRC_PLUGIN_DIR . 'admin/class-frc-export.php';
 			}
 		}
 
@@ -90,6 +91,9 @@ class FRC_Loader {
 	 * Instantiate and wire up all plugin components.
 	 */
 	private function init_components() {
+		// Run DB upgrade if schema version changed.
+		$this->maybe_upgrade_db();
+
 		// Core.
 		new FRC_Cart_Tracker();
 		new FRC_Cart_Recovery();
@@ -169,6 +173,18 @@ class FRC_Loader {
 				$action['priority'],
 				$action['accepted_args']
 			);
+		}
+	}
+
+	/**
+	 * Run database schema upgrades when the stored version is behind the current plugin version.
+	 */
+	private function maybe_upgrade_db() {
+		$installed_version = get_option( 'frc_db_version', '0' );
+		if ( version_compare( $installed_version, FRC_VERSION, '<' ) ) {
+			require_once FRC_PLUGIN_DIR . 'includes/class-frc-activator.php';
+			FRC_Activator::upgrade_db();
+			update_option( 'frc_db_version', FRC_VERSION );
 		}
 	}
 }

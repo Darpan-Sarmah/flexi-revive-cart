@@ -41,7 +41,14 @@ class FRC_Admin_Carts extends WP_List_Table {
 
 		?>
 		<div class="wrap frc-wrap">
-			<h1><?php esc_html_e( 'Abandoned Carts', 'flexi-revive-cart' ); ?></h1>
+			<h1>
+				<?php esc_html_e( 'Abandoned Carts', 'flexi-revive-cart' ); ?>
+				<?php if ( FRC_PRO_ACTIVE ) : ?>
+				<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=frc-carts&frc_export_csv=1' . ( isset( $_GET['status'] ) ? '&status=' . sanitize_key( wp_unslash( $_GET['status'] ) ) : '' ) ), 'frc_export_csv' ) ); ?>" class="page-title-action">
+					<?php esc_html_e( 'Export CSV', 'flexi-revive-cart' ); ?>
+				</a>
+				<?php endif; ?>
+			</h1>
 
 			<form method="get">
 				<input type="hidden" name="page" value="frc-carts" />
@@ -140,10 +147,24 @@ class FRC_Admin_Carts extends WP_List_Table {
 		global $wpdb;
 
 		if ( 'delete' === $action ) {
+			$count = 0;
 			foreach ( $cart_ids as $id ) {
-				$wpdb->delete( $wpdb->prefix . 'frc_abandoned_carts', array( 'id' => $id ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				$result = $wpdb->delete( $wpdb->prefix . 'frc_abandoned_carts', array( 'id' => $id ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+				if ( $result ) {
+					$count++;
+				}
 			}
+			add_action( 'admin_notices', function () use ( $count ) {
+				echo '<div class="notice notice-success is-dismissible"><p>' .
+					esc_html( sprintf(
+						/* translators: %d: number of carts deleted */
+						_n( '%d cart deleted.', '%d carts deleted.', $count, 'flexi-revive-cart' ),
+						$count
+					) ) .
+					'</p></div>';
+			} );
 		} elseif ( 'resend_reminder' === $action ) {
+			$sent  = 0;
 			$email_manager = new FRC_Email_Manager();
 			foreach ( $cart_ids as $id ) {
 				$cart = FRC_Helpers::get_cart_by_id( $id );
@@ -151,8 +172,19 @@ class FRC_Admin_Carts extends WP_List_Table {
 					continue;
 				}
 				$stage = min( (int) $cart->emails_sent + 1, 3 );
-				$email_manager->send_reminder( $cart, $stage );
+				if ( $email_manager->send_reminder( $cart, $stage ) ) {
+					$sent++;
+				}
 			}
+			add_action( 'admin_notices', function () use ( $sent ) {
+				echo '<div class="notice notice-success is-dismissible"><p>' .
+					esc_html( sprintf(
+						/* translators: %d: number of reminders sent */
+						_n( '%d reminder sent.', '%d reminders sent.', $sent, 'flexi-revive-cart' ),
+						$sent
+					) ) .
+					'</p></div>';
+			} );
 		}
 	}
 

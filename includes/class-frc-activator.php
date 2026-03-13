@@ -28,6 +28,14 @@ class FRC_Activator {
 	}
 
 	/**
+	 * Run database schema upgrades (called on version change).
+	 * Uses dbDelta so it is safe to run even when tables already exist.
+	 */
+	public static function upgrade_db() {
+		self::create_tables();
+	}
+
+	/**
 	 * Create custom database tables.
 	 */
 	private static function create_tables() {
@@ -170,6 +178,7 @@ class FRC_Activator {
 			'frc_popup_delay_seconds'       => 30,
 			'frc_popup_message'             => __( 'Wait! Don\'t leave your cart behind.', 'flexi-revive-cart' ),
 			'frc_popup_button_text'         => __( 'Save My Cart', 'flexi-revive-cart' ),
+			'frc_browse_followup_hours'     => 2,
 		);
 
 		foreach ( $defaults as $option => $value ) {
@@ -183,6 +192,20 @@ class FRC_Activator {
 	 * Schedule the recurring abandoned-cart check cron event.
 	 */
 	private static function schedule_cron() {
+		// Register the custom interval immediately so wp_schedule_event() accepts it.
+		if ( ! isset( wp_get_schedules()['frc_15_minutes'] ) ) {
+			add_filter(
+				'cron_schedules',
+				function ( $schedules ) {
+					$schedules['frc_15_minutes'] = array(
+						'interval' => 900,
+						'display'  => __( 'Every 15 Minutes (FRC)', 'flexi-revive-cart' ),
+					);
+					return $schedules;
+				}
+			);
+		}
+
 		if ( ! wp_next_scheduled( 'frc_check_abandoned_carts' ) ) {
 			wp_schedule_event( time(), 'frc_15_minutes', 'frc_check_abandoned_carts' );
 		}
