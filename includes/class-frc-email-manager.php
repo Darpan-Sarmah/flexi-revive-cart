@@ -53,15 +53,23 @@ class FRC_Email_Manager {
 		$subject       = isset( $subjects[ $subject_index ] ) ? $subjects[ $subject_index ] : $subjects[0];
 
 		// Generate discount code for stage 3 (Pro).
-		$discount_code = '';
-		$discount_pct  = 0;
+		$discount_code   = '';
+		$discount_pct    = 0;
+		$discount_amount = '';
 		if ( FRC_PRO_ACTIVE && 3 === $stage && get_option( 'frc_enable_auto_discounts', '0' ) ) {
-			$discount_pct  = (int) get_option( 'frc_discount_percentage', 10 );
+			$discount_pct  = (float) get_option( 'frc_discount_percentage', 10 );
+			$discount_type = get_option( 'frc_discount_type', 'percent' );
 			$discount_code = $this->get_or_create_discount( $cart, $discount_pct );
+			// Format the human-readable discount amount for email templates.
+			if ( 'fixed_cart' === $discount_type ) {
+				$discount_amount = FRC_Helpers::format_currency( $discount_pct, get_woocommerce_currency() );
+			} else {
+				$discount_amount = $discount_pct . '%';
+			}
 		}
 
 		// Build template vars (log_id will be 0 until we insert the log).
-		$vars = FRC_Email_Templates::build_vars( $cart, 0, $discount_code, $discount_pct );
+		$vars = FRC_Email_Templates::build_vars( $cart, 0, $discount_code, $discount_amount );
 
 		// Determine cart language for template selection.
 		$lang = isset( $cart->language ) && $cart->language ? $cart->language : 'en';
@@ -96,7 +104,7 @@ class FRC_Email_Manager {
 		$log_id = (int) $wpdb->insert_id;
 
 		// Re-build vars now that we have the log ID for tracking pixel / link.
-		$vars = FRC_Email_Templates::build_vars( $cart, $log_id, $discount_code, $discount_pct );
+		$vars = FRC_Email_Templates::build_vars( $cart, $log_id, $discount_code, $discount_amount );
 		$body = FRC_Email_Templates::render( $template_id, $vars, $lang );
 
 		// Update body in log.

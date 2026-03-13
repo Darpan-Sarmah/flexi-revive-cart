@@ -96,8 +96,8 @@ class FRC_Cart_Recovery {
 			WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation );
 		}
 
-		// Apply discount coupon (Pro feature).
-		if ( FRC_PRO_ACTIVE && ! empty( $cart->discount_code ) ) {
+		// Apply discount coupon (Pro feature, only when auto-apply is enabled).
+		if ( FRC_PRO_ACTIVE && ! empty( $cart->discount_code ) && get_option( 'frc_auto_apply_coupon', '1' ) ) {
 			WC()->cart->apply_coupon( sanitize_text_field( $cart->discount_code ) );
 		}
 
