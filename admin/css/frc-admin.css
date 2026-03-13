@@ -1,0 +1,173 @@
+/* ==========================================================================
+   Flexi Revive Cart – Admin Styles
+   ========================================================================== */
+
+/* Wrap */
+.frc-wrap {
+	max-width: 1400px;
+}
+
+/* ─── Stats grid ─────────────────────────────────────────────────────────── */
+.frc-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 16px;
+	margin: 24px 0;
+}
+
+.frc-stat-card {
+	background: #fff;
+	border: 1px solid #e2e4e7;
+	border-radius: 8px;
+	padding: 20px 16px;
+	text-align: center;
+	box-shadow: 0 1px 4px rgba(0,0,0,.06);
+	transition: box-shadow .15s;
+}
+
+.frc-stat-card:hover {
+	box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.frc-stat-icon {
+	font-size: 28px;
+	color: #7f54b3;
+	display: block;
+	margin-bottom: 8px;
+}
+
+.frc-stat-value {
+	font-size: 26px;
+	font-weight: 700;
+	color: #1e1e1e;
+	line-height: 1.2;
+}
+
+.frc-stat-label {
+	font-size: 12px;
+	color: #757575;
+	margin-top: 4px;
+	text-transform: uppercase;
+	letter-spacing: .5px;
+}
+
+.frc-stat-recovered .frc-stat-icon,
+.frc-stat-recovered .frc-stat-value { color: #46b450; }
+
+.frc-stat-rate .frc-stat-icon,
+.frc-stat-rate .frc-stat-value { color: #00a0d2; }
+
+.frc-stat-revenue .frc-stat-icon,
+.frc-stat-revenue .frc-stat-value { color: #7f54b3; }
+
+.frc-stat-lost .frc-stat-icon,
+.frc-stat-lost .frc-stat-value { color: #d63638; }
+
+/* ─── Charts grid ────────────────────────────────────────────────────────── */
+.frc-charts-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+	gap: 20px;
+	margin: 24px 0;
+}
+
+.frc-chart-card {
+	background: #fff;
+	border: 1px solid #e2e4e7;
+	border-radius: 8px;
+	padding: 20px;
+	box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.frc-chart-card h3 {
+	margin: 0 0 12px;
+	font-size: 14px;
+	color: #3c434a;
+}
+
+.frc-chart-card canvas {
+	max-height: 280px;
+	width: 100% !important;
+}
+
+/* ─── Settings tabs ──────────────────────────────────────────────────────── */
+.frc-tabs {
+	margin-bottom: 0;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.frc-settings-form {
+	background: #fff;
+	border: 1px solid #e2e4e7;
+	border-top: none;
+	padding: 20px 24px;
+	margin-top: 0;
+	border-radius: 0 0 8px 8px;
+}
+
+.frc-pro-locked {
+	opacity: .6;
+	pointer-events: none;
+}
+
+/* ─── Status badges ──────────────────────────────────────────────────────── */
+.frc-badge {
+	display: inline-block;
+	padding: 3px 10px;
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .5px;
+}
+
+.frc-badge-abandoned { background: #fce9e9; color: #d63638; }
+.frc-badge-recovered { background: #edfbee; color: #00a32a; }
+.frc-badge-expired   { background: #f6f7f7; color: #757575; }
+
+/* ─── Filter bar ─────────────────────────────────────────────────────────── */
+.frc-filter-bar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+/* ─── Pro notice ─────────────────────────────────────────────────────────── */
+.frc-pro-notice {
+	display: flex;
+	align-items: center;
+}
+
+/* ─── Pro section ────────────────────────────────────────────────────────── */
+.frc-pro-section {
+	margin-top: 32px;
+}
+
+/* ─── A/B winner ─────────────────────────────────────────────────────────── */
+.frc-winner {
+	background-color: #edfbee;
+	font-weight: 700;
+}
+
+/* ─── Email editor ───────────────────────────────────────────────────────── */
+.frc-var-buttons {
+	margin-bottom: 10px;
+}
+
+.frc-var-buttons .button {
+	font-family: monospace;
+	font-size: 11px;
+	margin-right: 4px;
+	margin-bottom: 4px;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+@media screen and (max-width: 782px) {
+	.frc-stats-grid  { grid-template-columns: 1fr 1fr; }
+	.frc-charts-grid { grid-template-columns: 1fr; }
+}
+
+@media screen and (max-width: 480px) {
+	.frc-stats-grid { grid-template-columns: 1fr; }
+}

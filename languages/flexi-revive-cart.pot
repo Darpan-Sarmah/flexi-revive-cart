@@ -1,0 +1,203 @@
+# Copyright (C) 2024 Darpan Sarmah
+# This file is distributed under the same license as the Flexi Revive Cart plugin.
+# Darpan Sarmah <darpansarmah@example.com>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Flexi Revive Cart 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/Darpan-Sarmah/flexi-revive-cart\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: WP-CLI 2.7.1\n"
+"X-Domain: flexi-revive-cart\n"
+
+#. Plugin Name of the plugin
+msgid "Flexi Revive Cart - Abandoned Cart Recovery for WooCommerce"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://github.com/Darpan-Sarmah/flexi-revive-cart"
+msgstr ""
+
+#. Description of the plugin
+msgid "Recover abandoned carts with email, SMS, push notifications, exit-intent popups, and dynamic discounts. Free and Pro versions available."
+msgstr ""
+
+#. Author of the plugin
+msgid "Darpan Sarmah"
+msgstr ""
+
+msgid "Flexi Revive Cart requires WooCommerce to be installed and active."
+msgstr ""
+
+msgid "Plugin Activation Error"
+msgstr ""
+
+msgid "You left something behind!"
+msgstr ""
+
+msgid "Your cart is waiting – items may sell out!"
+msgstr ""
+
+msgid "Here's a special offer to complete your purchase!"
+msgstr ""
+
+msgid "Flexi Revive Cart – Dashboard"
+msgstr ""
+
+msgid "Dashboard"
+msgstr ""
+
+msgid "Abandoned Carts"
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Email Editor"
+msgstr ""
+
+msgid "A/B Results"
+msgstr ""
+
+msgid "Upgrade to Pro for SMS, push notifications, A/B testing, exit-intent popups, and more!"
+msgstr ""
+
+msgid "Upgrade to Pro"
+msgstr ""
+
+msgid "Abandoned Carts (Flexi Revive Cart)"
+msgstr ""
+
+msgid "Cart Total"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Abandoned At"
+msgstr ""
+
+msgid "Recovered At"
+msgstr ""
+
+msgid "Complete Your Purchase"
+msgstr ""
+
+msgid "Unsubscribe"
+msgstr ""
+
+msgid "You left something behind!"
+msgstr ""
+
+msgid "Hi %s,"
+msgstr ""
+
+msgid "We noticed you left some items in your cart. Don't worry – we've saved them for you."
+msgstr ""
+
+msgid "Your cart is still waiting…"
+msgstr ""
+
+msgid "Last chance to complete your purchase!"
+msgstr ""
+
+msgid "Hi %s, we saved a special discount just for you."
+msgstr ""
+
+msgid "Use Code:"
+msgstr ""
+
+msgid "Claim My Discount"
+msgstr ""
+
+msgid "Discount code expires in 72 hours."
+msgstr ""
+
+msgid "Wait! Don't leave your cart behind."
+msgstr ""
+
+msgid "Save My Cart"
+msgstr ""
+
+msgid "Enter your email and we'll save your cart so you can complete your purchase later."
+msgstr ""
+
+msgid "No thanks, I don't want to save my cart."
+msgstr ""
+
+msgid "Wait – don't go just yet!"
+msgstr ""
+
+msgid "Wait! Get %d%% off your cart!"
+msgstr ""
+
+msgid "Leave your email and we'll send you a %d%% discount code for your cart."
+msgstr ""
+
+msgid "No thanks, I'll pay full price."
+msgstr ""
+
+msgid "Restoring your cart…"
+msgstr ""
+
+msgid "Please wait while we restore your saved cart and redirect you to checkout."
+msgstr ""
+
+msgid "Continue to Checkout"
+msgstr ""
+
+msgid "Your cart has been restored! Complete your purchase below."
+msgstr ""
+
+msgid "This recovery link is invalid or has expired."
+msgstr ""
+
+msgid "This cart has already been recovered or has expired."
+msgstr ""
+
+msgid "You have been successfully unsubscribed from cart reminder emails."
+msgstr ""
+
+msgid "Friendly Reminder"
+msgstr ""
+
+msgid "Urgency Reminder"
+msgstr ""
+
+msgid "Incentive / Discount"
+msgstr ""
+
+msgid "Product"
+msgstr ""
+
+msgid "Qty"
+msgstr ""
+
+msgid "Price"
+msgstr ""
+
+msgid "%d second ago"
+msgid_plural "%d seconds ago"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d minute ago"
+msgid_plural "%d minutes ago"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d hour ago"
+msgid_plural "%d hours ago"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%d day ago"
+msgid_plural "%d days ago"
+msgstr[0] ""
+msgstr[1] ""

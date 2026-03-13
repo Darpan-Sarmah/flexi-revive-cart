@@ -1,0 +1,143 @@
+/* ==========================================================================
+   Flexi Revive Cart – Public Styles
+   ========================================================================== */
+
+/* ─── Popup overlay ──────────────────────────────────────────────────────── */
+.frc-popup-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,.55);
+	z-index: 99998;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity .3s ease, visibility .3s ease;
+}
+
+.frc-popup-overlay.frc-popup-visible {
+	opacity: 1;
+	visibility: visible;
+}
+
+/* ─── Popup modal ────────────────────────────────────────────────────────── */
+.frc-popup-modal {
+	background: #fff;
+	border-radius: 12px;
+	padding: 36px 32px;
+	max-width: 480px;
+	width: calc(100% - 32px);
+	position: relative;
+	box-shadow: 0 8px 40px rgba(0,0,0,.2);
+	transform: translateY(20px);
+	transition: transform .3s ease;
+	text-align: center;
+}
+
+.frc-popup-overlay.frc-popup-visible .frc-popup-modal {
+	transform: translateY(0);
+}
+
+/* ─── Popup close button ─────────────────────────────────────────────────── */
+.frc-popup-close {
+	position: absolute;
+	top: 12px;
+	right: 16px;
+	font-size: 22px;
+	line-height: 1;
+	cursor: pointer;
+	color: #757575;
+	background: none;
+	border: none;
+	padding: 0;
+}
+
+.frc-popup-close:hover { color: #1e1e1e; }
+
+/* ─── Popup content ──────────────────────────────────────────────────────── */
+.frc-popup-icon {
+	font-size: 48px;
+	margin-bottom: 12px;
+}
+
+.frc-popup-modal h2 {
+	font-size: 22px;
+	margin: 0 0 10px;
+	color: #1e1e1e;
+}
+
+.frc-popup-modal p {
+	font-size: 15px;
+	color: #555;
+	margin: 0 0 20px;
+}
+
+/* ─── Popup form ─────────────────────────────────────────────────────────── */
+.frc-popup-form {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.frc-popup-email-input {
+	flex: 1;
+	min-width: 200px;
+	padding: 12px 16px;
+	font-size: 15px;
+	border: 2px solid #d1d5db;
+	border-radius: 6px;
+	outline: none;
+	transition: border-color .2s;
+}
+
+.frc-popup-email-input:focus {
+	border-color: #7f54b3;
+}
+
+.frc-popup-submit-btn {
+	padding: 12px 24px;
+	font-size: 15px;
+	font-weight: 600;
+	background: #7f54b3;
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background .2s;
+}
+
+.frc-popup-submit-btn:hover { background: #6b46a0; }
+
+/* ─── Popup message ──────────────────────────────────────────────────────── */
+.frc-popup-message {
+	margin-top: 12px;
+	font-size: 13px;
+	min-height: 18px;
+}
+
+.frc-popup-message.frc-success { color: #00a32a; }
+.frc-popup-message.frc-error   { color: #d63638; }
+
+/* ─── Popup dismiss link ─────────────────────────────────────────────────── */
+.frc-popup-dismiss {
+	display: block;
+	margin-top: 14px;
+	font-size: 12px;
+	color: #9ca3af;
+	text-decoration: none;
+	cursor: pointer;
+	background: none;
+	border: none;
+	padding: 0;
+}
+
+.frc-popup-dismiss:hover { color: #555; text-decoration: underline; }
+
+/* ─── Mobile ─────────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+	.frc-popup-modal { padding: 28px 20px; }
+	.frc-popup-form  { flex-direction: column; }
+	.frc-popup-submit-btn { width: 100%; }
+}
