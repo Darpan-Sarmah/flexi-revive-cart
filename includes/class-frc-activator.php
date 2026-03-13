@@ -140,6 +140,23 @@ class FRC_Activator {
 			KEY product_id (product_id)
 		) ENGINE=InnoDB {$charset_collate};";
 
+		// WhatsApp bulk campaigns table.
+		$sql[] = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}frc_whatsapp_campaigns (
+			id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			campaign_name VARCHAR(200) NOT NULL,
+			message_body LONGTEXT NOT NULL,
+			recipients INT(11) DEFAULT 0,
+			sent INT(11) DEFAULT 0,
+			delivered INT(11) DEFAULT 0,
+			read_count INT(11) DEFAULT 0,
+			clicks INT(11) DEFAULT 0,
+			status ENUM('sending','completed','failed') DEFAULT 'sending',
+			sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			KEY sent_at (sent_at),
+			KEY status (status)
+		) ENGINE=InnoDB {$charset_collate};";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		foreach ( $sql as $query ) {
 			dbDelta( $query );
@@ -169,6 +186,9 @@ class FRC_Activator {
 			'frc_enable_sms'                => '0',
 			'frc_sms_provider'              => 'twilio',
 			'frc_enable_push'               => '0',
+			'frc_enable_whatsapp'           => '0',
+			'frc_whatsapp_provider'         => 'twilio',
+			'frc_whatsapp_from'             => '',
 			'frc_enable_guest_capture'      => '0',
 			'frc_enable_exit_intent'        => '0',
 			'frc_enable_auto_discounts'     => '0',
