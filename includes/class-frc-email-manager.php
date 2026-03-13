@@ -63,8 +63,11 @@ class FRC_Email_Manager {
 		// Build template vars (log_id will be 0 until we insert the log).
 		$vars = FRC_Email_Templates::build_vars( $cart, 0, $discount_code, $discount_pct );
 
+		// Determine cart language for template selection.
+		$lang = isset( $cart->language ) && $cart->language ? $cart->language : 'en';
+
 		// Render body.
-		$body = FRC_Email_Templates::render( $template_id, $vars );
+		$body = FRC_Email_Templates::render( $template_id, $vars, $lang );
 		if ( empty( $body ) ) {
 			return false;
 		}
@@ -94,7 +97,7 @@ class FRC_Email_Manager {
 
 		// Re-build vars now that we have the log ID for tracking pixel / link.
 		$vars = FRC_Email_Templates::build_vars( $cart, $log_id, $discount_code, $discount_pct );
-		$body = FRC_Email_Templates::render( $template_id, $vars );
+		$body = FRC_Email_Templates::render( $template_id, $vars, $lang );
 
 		// Update body in log.
 		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery

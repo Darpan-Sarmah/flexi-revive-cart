@@ -59,6 +59,7 @@ class FRC_Loader {
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-discount-manager.php';
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-guest-capture.php';
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-sms-manager.php';
+			require_once FRC_PLUGIN_DIR . 'includes/class-frc-whatsapp-manager.php';
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-push-manager.php';
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-ab-testing.php';
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-browse-abandonment.php';
@@ -75,10 +76,13 @@ class FRC_Loader {
 			}
 			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-settings.php';
 			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-carts.php';
+			// Email editor is available to all users (Free).
+			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-email-editor.php';
 
 			if ( FRC_PRO_ACTIVE ) {
-				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-email-editor.php';
 				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-ab-results.php';
+				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-whatsapp.php';
+				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-analytics.php';
 				require_once FRC_PLUGIN_DIR . 'admin/class-frc-export.php';
 			}
 		}

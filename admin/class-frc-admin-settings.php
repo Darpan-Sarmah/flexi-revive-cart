@@ -67,6 +67,15 @@ class FRC_Admin_Settings {
 			register_setting( 'frc_push', 'frc_push_message_' . $i, array( 'sanitize_callback' => 'sanitize_text_field' ) );
 		}
 
+		// WhatsApp (Pro).
+		register_setting( 'frc_whatsapp', 'frc_enable_whatsapp', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
+		register_setting( 'frc_whatsapp', 'frc_whatsapp_provider', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => 'twilio' ) );
+		register_setting( 'frc_whatsapp', 'frc_whatsapp_from', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		for ( $i = 1; $i <= 3; $i++ ) {
+			register_setting( 'frc_whatsapp', 'frc_whatsapp_template_' . $i, array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
+		}
+		register_setting( 'frc_whatsapp', 'frc_whatsapp_template_bulk', array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
+
 		// Popup (Pro).
 		register_setting( 'frc_popup', 'frc_enable_guest_capture', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
 		register_setting( 'frc_popup', 'frc_enable_exit_intent', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
@@ -123,6 +132,7 @@ class FRC_Admin_Settings {
 					'email'      => __( 'Email', 'flexi-revive-cart' ),
 					'discount'   => __( 'Discounts', 'flexi-revive-cart' ),
 					'sms'        => __( 'SMS' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
+					'whatsapp'   => __( 'WhatsApp' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
 					'push'       => __( 'Push' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
 					'popup'      => __( 'Popups' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
 					'compliance' => __( 'Compliance', 'flexi-revive-cart' ),
@@ -153,6 +163,10 @@ class FRC_Admin_Settings {
 					case 'sms':
 						settings_fields( 'frc_sms' );
 						$this->render_sms_settings();
+						break;
+					case 'whatsapp':
+						settings_fields( 'frc_whatsapp' );
+						$this->render_whatsapp_settings();
 						break;
 					case 'push':
 						settings_fields( 'frc_push' );
@@ -389,6 +403,52 @@ class FRC_Admin_Settings {
 				<td>
 					<input type="number" name="frc_browse_followup_hours" value="<?php echo esc_attr( get_option( 'frc_browse_followup_hours', 2 ) ); ?>" min="1" max="72" class="small-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> />
 					<p class="description"><?php esc_html_e( 'Hours after a product page view before sending a browse abandonment follow-up email.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/** Render WhatsApp Settings tab. */
+	private function render_whatsapp_settings() {
+		$this->maybe_show_pro_notice();
+		?>
+		<table class="form-table <?php echo ! FRC_PRO_ACTIVE ? 'frc-pro-locked' : ''; ?>">
+			<tr>
+				<th><?php esc_html_e( 'Enable WhatsApp Notifications', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" name="frc_enable_whatsapp" value="1" <?php checked( get_option( 'frc_enable_whatsapp', '0' ) ); ?> <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></label></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'WhatsApp Provider', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select name="frc_whatsapp_provider" <?php disabled( ! FRC_PRO_ACTIVE ); ?>>
+						<option value="twilio" <?php selected( get_option( 'frc_whatsapp_provider', 'twilio' ), 'twilio' ); ?>><?php esc_html_e( 'Twilio WhatsApp', 'flexi-revive-cart' ); ?></option>
+						<option value="plivo" <?php selected( get_option( 'frc_whatsapp_provider', 'twilio' ), 'plivo' ); ?>><?php esc_html_e( 'Plivo WhatsApp', 'flexi-revive-cart' ); ?></option>
+					</select>
+					<p class="description"><?php esc_html_e( 'Uses the Twilio/Plivo credentials configured in the SMS tab.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'WhatsApp From Number', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" name="frc_whatsapp_from" value="<?php echo esc_attr( get_option( 'frc_whatsapp_from', '' ) ); ?>" class="regular-text" placeholder="+14155238886" <?php disabled( ! FRC_PRO_ACTIVE ); ?> />
+					<p class="description"><?php esc_html_e( 'Your Twilio/Plivo WhatsApp-enabled phone number in E.164 format (e.g. +14155238886). For Twilio sandbox, use the sandbox number.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<?php for ( $i = 1; $i <= 3; $i++ ) : ?>
+			<tr>
+				<th><?php echo esc_html( sprintf( __( 'WhatsApp Template – Stage %d', 'flexi-revive-cart' ), $i ) ); ?></th>
+				<td>
+					<textarea name="frc_whatsapp_template_<?php echo esc_attr( $i ); ?>" class="large-text" rows="3" <?php disabled( ! FRC_PRO_ACTIVE ); ?>><?php echo esc_textarea( get_option( 'frc_whatsapp_template_' . $i, '' ) ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'Supports: {user_name}, {cart_total}, {cart_link}, {store_name}, {discount_code}, {discount_amount}, {abandoned_time}', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<?php endfor; ?>
+			<tr>
+				<th><?php esc_html_e( 'Bulk Campaign Default Message', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<textarea name="frc_whatsapp_template_bulk" class="large-text" rows="3" <?php disabled( ! FRC_PRO_ACTIVE ); ?>><?php echo esc_textarea( get_option( 'frc_whatsapp_template_bulk', __( 'Hi {user_name}, your cart at {store_name} is waiting! Complete your purchase: {cart_link}', 'flexi-revive-cart' ) ) ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'Default message template used for bulk WhatsApp campaigns.', 'flexi-revive-cart' ); ?></p>
 				</td>
 			</tr>
 		</table>
