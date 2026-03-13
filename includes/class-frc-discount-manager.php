@@ -36,7 +36,7 @@ class FRC_Discount_Manager {
 		}
 
 		$expiry_hours = (int) get_option( 'frc_coupon_expiry_hours', 72 );
-		$expiry_date  = date( 'Y-m-d', strtotime( '+' . $expiry_hours . ' hours' ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+		$expiry_date  = gmdate( 'Y-m-d', strtotime( '+' . $expiry_hours . ' hours' ) );
 
 		$coupon = new WC_Coupon();
 		$coupon->set_code( $code );

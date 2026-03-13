@@ -128,8 +128,8 @@ class FRC_Cron_Manager {
 	/**
 	 * Dispatch a reminder via Action Scheduler (preferred) or wp_mail directly.
 	 *
-	 * @param object           $cart          Cart row.
-	 * @param int              $stage         Reminder stage.
+	 * @param object            $cart          Cart row.
+	 * @param int               $stage         Reminder stage.
 	 * @param FRC_Email_Manager $email_manager Email manager instance.
 	 */
 	private function dispatch_reminder( $cart, $stage, $email_manager ) {
@@ -145,6 +145,18 @@ class FRC_Cron_Manager {
 			);
 		} else {
 			$email_manager->send_reminder( $cart, $stage );
+		}
+
+		// Dispatch SMS when enabled (Pro).
+		if ( FRC_PRO_ACTIVE && get_option( 'frc_enable_sms', '0' ) && class_exists( 'FRC_SMS_Manager' ) ) {
+			$sms = new FRC_SMS_Manager();
+			$sms->send_sms( $cart, $stage );
+		}
+
+		// Dispatch Push notifications when enabled (Pro).
+		if ( FRC_PRO_ACTIVE && get_option( 'frc_enable_push', '0' ) && class_exists( 'FRC_Push_Manager' ) ) {
+			$push = new FRC_Push_Manager();
+			$push->send_push( $cart, $stage );
 		}
 	}
 

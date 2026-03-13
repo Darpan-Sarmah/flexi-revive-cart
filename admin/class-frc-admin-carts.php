@@ -146,7 +146,10 @@ class FRC_Admin_Carts extends WP_List_Table {
 		} elseif ( 'resend_reminder' === $action ) {
 			$email_manager = new FRC_Email_Manager();
 			foreach ( $cart_ids as $id ) {
-				$cart  = FRC_Helpers::get_cart_by_id( $id );
+				$cart = FRC_Helpers::get_cart_by_id( $id );
+				if ( ! $cart ) {
+					continue;
+				}
 				$stage = min( (int) $cart->emails_sent + 1, 3 );
 				$email_manager->send_reminder( $cart, $stage );
 			}

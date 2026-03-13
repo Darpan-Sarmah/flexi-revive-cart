@@ -62,13 +62,17 @@ class FRC_Loader {
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-push-manager.php';
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-ab-testing.php';
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-browse-abandonment.php';
+			// Dashboard class is needed both in admin and via REST API.
+			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-dashboard.php';
 			require_once FRC_PLUGIN_DIR . 'includes/class-frc-rest-api.php';
 		}
 
 		// Admin.
 		if ( is_admin() ) {
 			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin.php';
-			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-dashboard.php';
+			if ( ! class_exists( 'FRC_Admin_Dashboard' ) ) {
+				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-dashboard.php';
+			}
 			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-settings.php';
 			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-carts.php';
 

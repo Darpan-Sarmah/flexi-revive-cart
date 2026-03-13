@@ -79,7 +79,11 @@ class FRC_AB_Testing {
 	 */
 	private function record_send( $test_id, $variant ) {
 		global $wpdb;
-		$field = 'a' === $variant ? 'variant_a_sent' : 'variant_b_sent';
+		$allowed_fields = array( 'variant_a_sent', 'variant_b_sent' );
+		$field          = 'a' === $variant ? 'variant_a_sent' : 'variant_b_sent';
+		if ( ! in_array( $field, $allowed_fields, true ) ) {
+			return;
+		}
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->prefix}frc_ab_tests SET `{$field}` = `{$field}` + 1 WHERE id = %d", $test_id ) );
 	}
@@ -92,7 +96,11 @@ class FRC_AB_Testing {
 	 */
 	public function record_open( $test_id, $variant ) {
 		global $wpdb;
-		$field = 'a' === $variant ? 'variant_a_opened' : 'variant_b_opened';
+		$allowed_fields = array( 'variant_a_opened', 'variant_b_opened' );
+		$field          = 'a' === $variant ? 'variant_a_opened' : 'variant_b_opened';
+		if ( ! in_array( $field, $allowed_fields, true ) ) {
+			return;
+		}
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->prefix}frc_ab_tests SET `{$field}` = `{$field}` + 1 WHERE id = %d", $test_id ) );
 	}

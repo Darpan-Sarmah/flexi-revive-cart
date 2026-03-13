@@ -60,7 +60,14 @@ class FRC_Cart_Tracker {
 	 * @param int $order_id WooCommerce order ID.
 	 */
 	public function on_order_placed( $order_id ) {
-		$email = $this->get_current_user_email();
+		// Prefer billing email from order (covers guests who didn't go through popup).
+		$order = wc_get_order( $order_id );
+		$email = $order ? $order->get_billing_email() : $this->get_current_user_email();
+
+		if ( ! $email ) {
+			$email = $this->get_current_user_email();
+		}
+
 		if ( ! $email ) {
 			return;
 		}
@@ -250,7 +257,8 @@ class FRC_Cart_Tracker {
 	 */
 	private function mark_cart_converted( $email, $order_id ) {
 		global $wpdb;
-		$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+		$updated = $wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 			$wpdb->prefix . 'frc_abandoned_carts',
 			array(
 				'status'             => 'converted',
@@ -264,6 +272,28 @@ class FRC_Cart_Tracker {
 			array( '%s', '%d', '%s' ),
 			array( '%s', '%s' )
 		);
+
+		// For guests whose email wasn't captured before checkout, also try session key.
+		if ( ! $updated && WC()->session ) {
+			$session_key = WC()->session->get_customer_id();
+			if ( $session_key ) {
+				$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+					$wpdb->prefix . 'frc_abandoned_carts',
+					array(
+						'status'             => 'converted',
+						'user_email'         => $email,
+						'recovered_order_id' => (int) $order_id,
+						'recovered_at'       => current_time( 'mysql' ),
+					),
+					array(
+						'session_key' => $session_key,
+						'status'      => 'abandoned',
+					),
+					array( '%s', '%s', '%d', '%s' ),
+					array( '%s', '%s' )
+				);
+			}
+		}
 	}
 
 	/**

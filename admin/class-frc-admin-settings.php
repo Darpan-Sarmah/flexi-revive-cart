@@ -54,11 +54,18 @@ class FRC_Admin_Settings {
 		register_setting( 'frc_sms', 'frc_plivo_auth_id', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 		register_setting( 'frc_sms', 'frc_plivo_auth_token', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 		register_setting( 'frc_sms', 'frc_plivo_from', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		for ( $i = 1; $i <= 3; $i++ ) {
+			register_setting( 'frc_sms', 'frc_sms_template_' . $i, array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
+		}
 
 		// Push (Pro).
 		register_setting( 'frc_push', 'frc_enable_push', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
 		register_setting( 'frc_push', 'frc_onesignal_app_id', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 		register_setting( 'frc_push', 'frc_onesignal_api_key', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		for ( $i = 1; $i <= 3; $i++ ) {
+			register_setting( 'frc_push', 'frc_push_title_' . $i, array( 'sanitize_callback' => 'sanitize_text_field' ) );
+			register_setting( 'frc_push', 'frc_push_message_' . $i, array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		}
 
 		// Popup (Pro).
 		register_setting( 'frc_popup', 'frc_enable_guest_capture', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
@@ -306,6 +313,15 @@ class FRC_Admin_Settings {
 				<th><?php esc_html_e( 'Twilio From Number', 'flexi-revive-cart' ); ?></th>
 				<td><input type="text" name="frc_twilio_from" value="<?php echo esc_attr( get_option( 'frc_twilio_from', '' ) ); ?>" class="regular-text" placeholder="+1234567890" <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></td>
 			</tr>
+			<?php for ( $i = 1; $i <= 3; $i++ ) : ?>
+			<tr>
+				<th><?php echo esc_html( sprintf( __( 'SMS Template – Stage %d', 'flexi-revive-cart' ), $i ) ); ?></th>
+				<td>
+					<textarea name="frc_sms_template_<?php echo esc_attr( $i ); ?>" class="large-text" rows="3" <?php disabled( ! FRC_PRO_ACTIVE ); ?>><?php echo esc_textarea( get_option( 'frc_sms_template_' . $i, '' ) ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'Supports: {user_name}, {cart_total}, {recovery_link}, {store_name}, {discount_code}, {discount_amount}', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<?php endfor; ?>
 		</table>
 		<?php
 	}
@@ -327,6 +343,16 @@ class FRC_Admin_Settings {
 				<th><?php esc_html_e( 'OneSignal REST API Key', 'flexi-revive-cart' ); ?></th>
 				<td><input type="password" name="frc_onesignal_api_key" value="<?php echo esc_attr( get_option( 'frc_onesignal_api_key', '' ) ); ?>" class="regular-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></td>
 			</tr>
+			<?php for ( $i = 1; $i <= 3; $i++ ) : ?>
+			<tr>
+				<th><?php echo esc_html( sprintf( __( 'Push Title – Stage %d', 'flexi-revive-cart' ), $i ) ); ?></th>
+				<td><input type="text" name="frc_push_title_<?php echo esc_attr( $i ); ?>" value="<?php echo esc_attr( get_option( 'frc_push_title_' . $i, __( 'Your cart is waiting!', 'flexi-revive-cart' ) ) ); ?>" class="large-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></td>
+			</tr>
+			<tr>
+				<th><?php echo esc_html( sprintf( __( 'Push Message – Stage %d', 'flexi-revive-cart' ), $i ) ); ?></th>
+				<td><input type="text" name="frc_push_message_<?php echo esc_attr( $i ); ?>" value="<?php echo esc_attr( get_option( 'frc_push_message_' . $i, __( 'Complete your purchase at {store_name}.', 'flexi-revive-cart' ) ) ); ?>" class="large-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></td>
+			</tr>
+			<?php endfor; ?>
 		</table>
 		<?php
 	}

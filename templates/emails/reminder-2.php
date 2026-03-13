@@ -56,7 +56,7 @@
         <tr>
           <td style="background:#f7f7f7;border-top:1px solid #e5e7eb;padding:20px 32px;text-align:center;">
             <p style="font-size:12px;color:#9ca3af;margin:0;">
-              &copy; <?php echo esc_html( date( 'Y' ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date ?> {store_name} &nbsp;|&nbsp;
+              &copy; <?php echo esc_html( gmdate( 'Y' ) ); ?> {store_name} &nbsp;|&nbsp;
               <a href="{unsubscribe_link}" style="color:#9ca3af;"><?php esc_html_e( 'Unsubscribe', 'flexi-revive-cart' ); ?></a>
             </p>
           </td>
