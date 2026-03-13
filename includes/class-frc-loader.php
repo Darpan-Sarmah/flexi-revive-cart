@@ -109,6 +109,7 @@ class FRC_Loader {
 
 		// Admin.
 		if ( is_admin() ) {
+			new FRC_Admin_Settings();
 			new FRC_Admin();
 		}
 
