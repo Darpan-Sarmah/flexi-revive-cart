@@ -42,7 +42,18 @@ class FRC_Admin_Settings {
 
 		// Discount (Pro).
 		register_setting( 'frc_discount', 'frc_enable_auto_discounts', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
-		register_setting( 'frc_discount', 'frc_discount_percentage', array( 'sanitize_callback' => 'absint', 'default' => 10 ) );
+		register_setting( 'frc_discount', 'frc_discount_type', array( 'sanitize_callback' => array( $this, 'sanitize_discount_type' ), 'default' => 'percent' ) );
+		register_setting( 'frc_discount', 'frc_discount_percentage', array( 'sanitize_callback' => array( $this, 'sanitize_positive_float' ), 'default' => 10 ) );
+		register_setting( 'frc_discount', 'frc_min_cart_value', array( 'sanitize_callback' => array( $this, 'sanitize_positive_float' ), 'default' => 0 ) );
+		register_setting( 'frc_discount', 'frc_coupon_expiry_days', array( 'sanitize_callback' => 'absint', 'default' => 7 ) );
+		register_setting( 'frc_discount', 'frc_coupon_usage_limit', array( 'sanitize_callback' => 'absint', 'default' => 1 ) );
+		register_setting( 'frc_discount', 'frc_exclude_sale_items', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
+		register_setting( 'frc_discount', 'frc_exclude_product_ids', array( 'sanitize_callback' => array( $this, 'sanitize_id_list' ) ) );
+		register_setting( 'frc_discount', 'frc_exclude_category_ids', array( 'sanitize_callback' => array( $this, 'sanitize_id_list' ) ) );
+		register_setting( 'frc_discount', 'frc_coupon_prefix', array( 'sanitize_callback' => array( $this, 'sanitize_coupon_affix' ), 'default' => 'RECOVER' ) );
+		register_setting( 'frc_discount', 'frc_coupon_suffix', array( 'sanitize_callback' => array( $this, 'sanitize_coupon_affix' ) ) );
+		register_setting( 'frc_discount', 'frc_auto_apply_coupon', array( 'sanitize_callback' => 'absint', 'default' => 1 ) );
+		// Kept for backward compatibility; no longer shown in UI.
 		register_setting( 'frc_discount', 'frc_coupon_expiry_hours', array( 'sanitize_callback' => 'absint', 'default' => 72 ) );
 
 		// SMS (Pro).
@@ -87,6 +98,52 @@ class FRC_Admin_Settings {
 		// Compliance.
 		register_setting( 'frc_compliance', 'frc_data_retention_days', array( 'sanitize_callback' => 'absint', 'default' => 90 ) );
 		register_setting( 'frc_compliance', 'frc_optout_page_url', array( 'sanitize_callback' => 'esc_url_raw' ) );
+	}
+
+	/**
+	 * Sanitize a positive float (discount amount, min cart value, etc.).
+	 *
+	 * @param mixed $value Input value.
+	 * @return float
+	 */
+	public function sanitize_positive_float( $value ) {
+		$float = floatval( $value );
+		return max( 0.0, $float );
+	}
+
+	/**
+	 * Sanitize the discount type option.
+	 *
+	 * @param mixed $value Input value.
+	 * @return string 'percent' or 'fixed_cart'.
+	 */
+	public function sanitize_discount_type( $value ) {
+		return in_array( $value, array( 'percent', 'fixed_cart' ), true ) ? $value : 'percent';
+	}
+
+	/**
+	 * Sanitize a comma-separated list of positive integer IDs.
+	 *
+	 * @param mixed $value Input value.
+	 * @return string Sanitized comma-separated IDs.
+	 */
+	public function sanitize_id_list( $value ) {
+		if ( empty( $value ) ) {
+			return '';
+		}
+		$ids = array_filter( array_map( 'absint', explode( ',', sanitize_text_field( $value ) ) ) );
+		return implode( ',', $ids );
+	}
+
+	/**
+	 * Sanitize a coupon code prefix or suffix (alphanumeric and hyphens only).
+	 *
+	 * @param mixed $value Input value.
+	 * @return string
+	 */
+	public function sanitize_coupon_affix( $value ) {
+		// Allow letters, digits, and hyphens; strip everything else.
+		return strtoupper( preg_replace( '/[^A-Za-z0-9\-]/', '', sanitize_text_field( $value ) ) );
 	}
 
 	/**
@@ -281,22 +338,179 @@ class FRC_Admin_Settings {
 	/** Render Discount Settings tab. */
 	private function render_discount_settings() {
 		$this->maybe_show_pro_notice();
+		$discount_type        = get_option( 'frc_discount_type', 'percent' );
+		$discount_amount      = get_option( 'frc_discount_percentage', 10 );
+		$min_cart_value       = get_option( 'frc_min_cart_value', 0 );
+		$expiry_days          = get_option( 'frc_coupon_expiry_days', 7 );
+		$usage_limit          = get_option( 'frc_coupon_usage_limit', 1 );
+		$exclude_sale         = get_option( 'frc_exclude_sale_items', '0' );
+		$exclude_products     = get_option( 'frc_exclude_product_ids', '' );
+		$exclude_categories   = get_option( 'frc_exclude_category_ids', '' );
+		$coupon_prefix        = get_option( 'frc_coupon_prefix', 'RECOVER' );
+		$coupon_suffix        = get_option( 'frc_coupon_suffix', '' );
+		$auto_apply           = get_option( 'frc_auto_apply_coupon', '1' );
+		$is_locked            = ! FRC_PRO_ACTIVE;
+		$table_class          = $is_locked ? 'form-table frc-pro-locked' : 'form-table';
 		?>
-		<table class="form-table <?php echo ! FRC_PRO_ACTIVE ? 'frc-pro-locked' : ''; ?>">
+		<table class="<?php echo esc_attr( $table_class ); ?>">
+			<!-- ── Enable / Disable ─────────────────────────────────────── -->
 			<tr>
-				<th><?php esc_html_e( 'Enable Auto-Discounts', 'flexi-revive-cart' ); ?></th>
-				<td><label><input type="checkbox" name="frc_enable_auto_discounts" value="1" <?php checked( get_option( 'frc_enable_auto_discounts', '0' ) ); ?> <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></label></td>
+				<th scope="row"><?php esc_html_e( 'Enable Dynamic Coupons', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="frc_enable_auto_discounts" value="1"
+							<?php checked( get_option( 'frc_enable_auto_discounts', '0' ) ); ?>
+							<?php disabled( $is_locked ); ?> />
+						<?php esc_html_e( 'Automatically generate a unique coupon for each abandoned cart recovery email.', 'flexi-revive-cart' ); ?>
+					</label>
+				</td>
+			</tr>
+
+			<!-- ── Coupon Rules ──────────────────────────────────────────── -->
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Discount Type', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select name="frc_discount_type" <?php disabled( $is_locked ); ?>>
+						<option value="percent" <?php selected( $discount_type, 'percent' ); ?>><?php esc_html_e( 'Percentage Discount (e.g. 10%)', 'flexi-revive-cart' ); ?></option>
+						<option value="fixed_cart" <?php selected( $discount_type, 'fixed_cart' ); ?>><?php esc_html_e( 'Fixed Cart Discount (e.g. $5 off)', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Discount Percentage (%)', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" name="frc_discount_percentage" value="<?php echo esc_attr( get_option( 'frc_discount_percentage', 10 ) ); ?>" min="1" max="100" class="small-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></td>
+				<th scope="row"><?php esc_html_e( 'Discount Amount', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_discount_percentage"
+						value="<?php echo esc_attr( $discount_amount ); ?>"
+						min="0" step="0.01" class="small-text"
+						<?php disabled( $is_locked ); ?> />
+					<p class="description"><?php esc_html_e( 'Enter a percentage (e.g. 10 for 10%) or a fixed amount (e.g. 5 for $5 off) depending on the Discount Type above.', 'flexi-revive-cart' ); ?></p>
+				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Coupon Expiry (hours)', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" name="frc_coupon_expiry_hours" value="<?php echo esc_attr( get_option( 'frc_coupon_expiry_hours', 72 ) ); ?>" min="1" class="small-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></td>
+				<th scope="row"><?php esc_html_e( 'Minimum Cart Value', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_min_cart_value"
+						value="<?php echo esc_attr( $min_cart_value ); ?>"
+						min="0" step="0.01" class="small-text"
+						<?php disabled( $is_locked ); ?> />
+					<p class="description"><?php esc_html_e( 'Apply coupon only when the cart total is at or above this amount. Set to 0 to apply to all carts.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Coupon Expiry (days)', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_coupon_expiry_days"
+						value="<?php echo esc_attr( $expiry_days ); ?>"
+						min="1" class="small-text"
+						<?php disabled( $is_locked ); ?> />
+					<p class="description"><?php esc_html_e( 'Number of days from the moment the coupon is generated before it expires.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Usage Limit per Coupon', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_coupon_usage_limit"
+						value="<?php echo esc_attr( $usage_limit ); ?>"
+						min="1" class="small-text"
+						<?php disabled( $is_locked ); ?> />
+					<p class="description"><?php esc_html_e( 'How many times can this coupon be used in total (e.g. 1 for single-use).', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Exclude Sale Items', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="frc_exclude_sale_items" value="1"
+							<?php checked( $exclude_sale ); ?>
+							<?php disabled( $is_locked ); ?> />
+						<?php esc_html_e( 'Do not apply the coupon to items that are already on sale.', 'flexi-revive-cart' ); ?>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Exclude Product IDs', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" name="frc_exclude_product_ids"
+						value="<?php echo esc_attr( $exclude_products ); ?>"
+						class="regular-text"
+						placeholder="<?php esc_attr_e( 'e.g. 12,45,78', 'flexi-revive-cart' ); ?>"
+						<?php disabled( $is_locked ); ?> />
+					<p class="description"><?php esc_html_e( 'Comma-separated list of product IDs to exclude from this coupon.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Exclude Category IDs', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" name="frc_exclude_category_ids"
+						value="<?php echo esc_attr( $exclude_categories ); ?>"
+						class="regular-text"
+						placeholder="<?php esc_attr_e( 'e.g. 5,10', 'flexi-revive-cart' ); ?>"
+						<?php disabled( $is_locked ); ?> />
+					<p class="description"><?php esc_html_e( 'Comma-separated list of product category IDs to exclude from this coupon.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+
+			<!-- ── Coupon Code Format ────────────────────────────────────── -->
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Coupon Code Prefix', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" name="frc_coupon_prefix"
+						value="<?php echo esc_attr( $coupon_prefix ); ?>"
+						class="regular-text"
+						placeholder="<?php esc_attr_e( 'RECOVER', 'flexi-revive-cart' ); ?>"
+						<?php disabled( $is_locked ); ?> />
+					<p class="description">
+						<?php esc_html_e( 'Prefix prepended to each auto-generated coupon code (letters, digits and hyphens only). Example: SUMMER2024 produces codes like SUMMER2024-A1B2C3D4.', 'flexi-revive-cart' ); ?>
+					</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Coupon Code Suffix', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" name="frc_coupon_suffix"
+						value="<?php echo esc_attr( $coupon_suffix ); ?>"
+						class="regular-text"
+						placeholder="<?php esc_attr_e( 'Optional', 'flexi-revive-cart' ); ?>"
+						<?php disabled( $is_locked ); ?> />
+					<p class="description"><?php esc_html_e( 'Optional suffix appended after the random segment (letters, digits and hyphens only). Leave blank to omit.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Coupon Code Preview', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<code id="frc-coupon-preview"><?php echo esc_html( $this->build_coupon_preview( $coupon_prefix, $coupon_suffix ) ); ?></code>
+					<p class="description"><?php esc_html_e( 'Sample of how a generated code will look. The random segment changes per cart.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+
+			<!-- ── Auto-Apply ────────────────────────────────────────────── -->
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Auto-Apply Coupon on Recovery', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="frc_auto_apply_coupon" value="1"
+							<?php checked( $auto_apply ); ?>
+							<?php disabled( $is_locked ); ?> />
+						<?php esc_html_e( 'Automatically apply the coupon to the restored cart when a customer clicks the recovery link.', 'flexi-revive-cart' ); ?>
+					</label>
+				</td>
 			</tr>
 		</table>
 		<?php
+	}
+
+	/**
+	 * Build a human-readable coupon code preview using the current prefix/suffix.
+	 *
+	 * @param string $prefix Coupon prefix.
+	 * @param string $suffix Coupon suffix.
+	 * @return string
+	 */
+	private function build_coupon_preview( $prefix, $suffix ) {
+		// Use 4 random bytes (8 hex chars) – matches the hex-style token used in generate_coupon_code().
+		$random = strtoupper( bin2hex( random_bytes( 4 ) ) );
+		$parts  = array_filter( array( strtoupper( $prefix ), $random, strtoupper( $suffix ) ) );
+		return implode( '-', $parts );
 	}
 
 	/** Render SMS Settings tab. */

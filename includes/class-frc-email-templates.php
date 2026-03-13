@@ -121,13 +121,13 @@ class FRC_Email_Templates {
 	/**
 	 * Build the replacement variables array for a given cart row.
 	 *
-	 * @param object $cart          Database cart row.
-	 * @param int    $log_id        Email log ID (for tracking links).
-	 * @param string $discount_code Optional discount code.
-	 * @param float  $discount_pct  Optional discount percentage.
+	 * @param object $cart              Database cart row.
+	 * @param int    $log_id            Email log ID (for tracking links).
+	 * @param string $discount_code     Optional discount code.
+	 * @param string $discount_amount   Human-readable discount amount string (e.g. "10%" or "$5.00").
 	 * @return array
 	 */
-	public static function build_vars( $cart, $log_id = 0, $discount_code = '', $discount_pct = 0 ) {
+	public static function build_vars( $cart, $log_id = 0, $discount_code = '', $discount_amount = '' ) {
 		// User name.
 		$user_name = '';
 		if ( $cart->user_id ) {
@@ -180,7 +180,7 @@ class FRC_Email_Templates {
 			'recovery_link'    => esc_url( $recovery_url ),
 			'cart_link'        => esc_url( $recovery_url ),
 			'discount_code'    => esc_html( $discount_code ),
-			'discount_amount'  => $discount_pct ? esc_html( $discount_pct . '%' ) : '',
+			'discount_amount'  => esc_html( $discount_amount ),
 			'store_name'       => esc_html( get_bloginfo( 'name' ) ),
 			'abandoned_time'   => esc_html( FRC_Helpers::time_ago( $cart->abandoned_at ) ),
 			'unsubscribe_link' => esc_url( $unsubscribe_url ),
