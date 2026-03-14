@@ -239,4 +239,83 @@ class FRC_Helpers {
 		$html .= '</tbody></table>';
 		return $html;
 	}
+
+	/**
+	 * Convert a value + time unit pair into seconds.
+	 *
+	 * @param int|float $value Numeric duration value.
+	 * @param string    $unit  Time unit: seconds, minutes, hours, days, weeks, months, years.
+	 * @return int Duration in seconds.
+	 */
+	public static function convert_to_seconds( $value, $unit ) {
+		$value = max( 0, (float) $value );
+		$multipliers = array(
+			'seconds' => 1,
+			'minutes' => MINUTE_IN_SECONDS,
+			'hours'   => HOUR_IN_SECONDS,
+			'days'    => DAY_IN_SECONDS,
+			'weeks'   => WEEK_IN_SECONDS,
+			'months'  => MONTH_IN_SECONDS,
+			'years'   => YEAR_IN_SECONDS,
+		);
+		$multiplier = isset( $multipliers[ $unit ] ) ? $multipliers[ $unit ] : 1;
+		return (int) round( $value * $multiplier );
+	}
+
+	/**
+	 * Get the list of allowed time units for the Free version.
+	 *
+	 * @return array
+	 */
+	public static function get_free_time_units() {
+		return array( 'seconds', 'minutes', 'hours', 'days' );
+	}
+
+	/**
+	 * Get the list of time units exclusive to the Pro version.
+	 *
+	 * @return array
+	 */
+	public static function get_pro_time_units() {
+		return array( 'weeks', 'months', 'years' );
+	}
+
+	/**
+	 * Get all supported time units.
+	 *
+	 * @return array Associative array of unit => label.
+	 */
+	public static function get_all_time_units() {
+		return array(
+			'seconds' => __( 'Seconds', 'flexi-revive-cart' ),
+			'minutes' => __( 'Minutes', 'flexi-revive-cart' ),
+			'hours'   => __( 'Hours', 'flexi-revive-cart' ),
+			'days'    => __( 'Days', 'flexi-revive-cart' ),
+			'weeks'   => __( 'Weeks', 'flexi-revive-cart' ),
+			'months'  => __( 'Months', 'flexi-revive-cart' ),
+			'years'   => __( 'Years', 'flexi-revive-cart' ),
+		);
+	}
+
+	/**
+	 * Sanitize a time unit value, respecting Free/Pro restrictions.
+	 *
+	 * @param string $value Input time unit.
+	 * @return string Valid time unit.
+	 */
+	public static function sanitize_time_unit( $value ) {
+		$value     = sanitize_text_field( $value );
+		$all_units = array_keys( self::get_all_time_units() );
+
+		if ( ! in_array( $value, $all_units, true ) ) {
+			return 'minutes';
+		}
+
+		// In Free version, restrict to free-only units.
+		if ( ! FRC_PRO_ACTIVE && in_array( $value, self::get_pro_time_units(), true ) ) {
+			return 'minutes';
+		}
+
+		return $value;
+	}
 }

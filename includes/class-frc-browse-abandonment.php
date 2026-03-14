@@ -75,8 +75,10 @@ class FRC_Browse_Abandonment {
 	public function process_browse_followups() {
 		global $wpdb;
 
-		$delay_hours = (int) get_option( 'frc_browse_followup_hours', 2 );
-		$cutoff      = gmdate( 'Y-m-d H:i:s', time() - ( $delay_hours * HOUR_IN_SECONDS ) );
+		$delay_value   = (int) get_option( 'frc_browse_followup_hours', 2 );
+		$delay_unit    = get_option( 'frc_browse_followup_unit', 'hours' );
+		$delay_seconds = FRC_Helpers::convert_to_seconds( $delay_value, $delay_unit );
+		$cutoff        = gmdate( 'Y-m-d H:i:s', time() - $delay_seconds );
 
 		$events = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(

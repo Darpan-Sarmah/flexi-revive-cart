@@ -46,6 +46,31 @@ class FRC_Admin_Email_Editor {
 		if ( isset( $_POST['frc_save_template'] ) && check_admin_referer( 'frc_save_email_template' ) ) {
 			$content = isset( $_POST['frc_template_content'] ) ? wp_kses_post( wp_unslash( $_POST['frc_template_content'] ) ) : '';
 			$subject = isset( $_POST['frc_template_subject'] ) ? sanitize_text_field( wp_unslash( $_POST['frc_template_subject'] ) ) : '';
+
+			// In Free version, strip Pro-only placeholders and warn the admin.
+			if ( ! FRC_PRO_ACTIVE ) {
+				$pro_placeholders = array( 'discount_code', 'discount_amount', 'discount_expiry', 'cart_expiry', 'low_stock_alert' );
+				$found_pro = array();
+				foreach ( $pro_placeholders as $pp ) {
+					if ( strpos( $content, '{' . $pp . '}' ) !== false || strpos( $subject, '{' . $pp . '}' ) !== false ) {
+						$found_pro[] = '{' . $pp . '}';
+						$content = str_replace( '{' . $pp . '}', '', $content );
+						$subject = str_replace( '{' . $pp . '}', '', $subject );
+					}
+				}
+				if ( ! empty( $found_pro ) ) {
+					echo '<div class="notice notice-warning"><p>';
+					echo esc_html(
+						sprintf(
+							/* translators: %s: list of placeholder names */
+							__( 'The following Pro-only placeholders were removed from your template: %s. Upgrade to Pro to use these placeholders.', 'flexi-revive-cart' ),
+							implode( ', ', $found_pro )
+						)
+					);
+					echo '</p></div>';
+				}
+			}
+
 			update_option( $saved_key, $content );
 			update_option( $subject_key, $subject );
 			// Also update the legacy generic key for English (backwards compat).
@@ -167,8 +192,14 @@ class FRC_Admin_Email_Editor {
 						<div class="frc-var-buttons" style="margin-bottom:12px;">
 							<strong><?php esc_html_e( 'Insert Variable:', 'flexi-revive-cart' ); ?></strong>
 							<?php
-							$vars = array( 'user_name', 'cart_items', 'cart_total', 'recovery_link', 'cart_link', 'discount_code', 'discount_amount', 'store_name', 'abandoned_time', 'unsubscribe_link' );
+							$pro_only_vars = array( 'discount_code', 'discount_amount', 'cart_expiry', 'low_stock_alert' );
+							$vars = array( 'user_name', 'cart_items', 'cart_total', 'recovery_link', 'cart_link', 'discount_code', 'discount_amount', 'store_name', 'abandoned_time', 'unsubscribe_link', 'cart_expiry', 'low_stock_alert' );
 							foreach ( $vars as $var ) {
+								$is_pro_var = in_array( $var, $pro_only_vars, true );
+								if ( $is_pro_var && ! FRC_PRO_ACTIVE ) {
+									// Hide Pro-only placeholder buttons in Free version.
+									continue;
+								}
 								echo '<button type="button" class="button button-small frc-insert-var" data-var="{' . esc_attr( $var ) . '}">{' . esc_html( $var ) . '}</button> ';
 							}
 							?>

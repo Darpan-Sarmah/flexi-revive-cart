@@ -29,6 +29,10 @@ class FRC_Admin_Settings {
 		// General.
 		register_setting( 'frc_general', 'frc_enable_tracking', array( 'sanitize_callback' => 'absint', 'default' => 1 ) );
 		register_setting( 'frc_general', 'frc_abandonment_timeout', array( 'sanitize_callback' => 'absint', 'default' => 60 ) );
+		register_setting( 'frc_general', 'frc_abandonment_timeout_unit', array( 'sanitize_callback' => array( 'FRC_Helpers', 'sanitize_time_unit' ), 'default' => 'minutes' ) );
+		register_setting( 'frc_general', 'frc_auto_delete_interval', array( 'sanitize_callback' => 'absint', 'default' => 90 ) );
+		register_setting( 'frc_general', 'frc_auto_delete_unit', array( 'sanitize_callback' => array( 'FRC_Helpers', 'sanitize_time_unit' ), 'default' => 'days' ) );
+		// Legacy setting kept for backward compatibility.
 		register_setting( 'frc_general', 'frc_auto_delete_days', array( 'sanitize_callback' => 'absint', 'default' => 90 ) );
 		register_setting( 'frc_general', 'frc_license_key', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 
@@ -43,6 +47,7 @@ class FRC_Admin_Settings {
 		register_setting( 'frc_email', 'frc_enable_email_reminders', array( 'sanitize_callback' => 'absint', 'default' => 1 ) );
 		register_setting( 'frc_email', 'frc_num_reminders', array( 'sanitize_callback' => 'absint', 'default' => 3 ) );
 		register_setting( 'frc_email', 'frc_reminder_interval', array( 'sanitize_callback' => 'absint', 'default' => 1 ) );
+		register_setting( 'frc_email', 'frc_reminder_interval_unit', array( 'sanitize_callback' => array( 'FRC_Helpers', 'sanitize_time_unit' ), 'default' => 'hours' ) );
 		register_setting( 'frc_email', 'frc_reminder_type', array( 'sanitize_callback' => array( $this, 'sanitize_reminder_type' ) ) );
 		// Legacy settings kept for backward compatibility.
 		register_setting( 'frc_email', 'frc_reminder_intervals', array( 'sanitize_callback' => array( $this, 'sanitize_intervals' ) ) );
@@ -58,6 +63,7 @@ class FRC_Admin_Settings {
 		register_setting( 'frc_discount', 'frc_discount_percentage', array( 'sanitize_callback' => array( $this, 'sanitize_positive_float' ), 'default' => 10 ) );
 		register_setting( 'frc_discount', 'frc_min_cart_value', array( 'sanitize_callback' => array( $this, 'sanitize_positive_float' ), 'default' => 0 ) );
 		register_setting( 'frc_discount', 'frc_coupon_expiry_days', array( 'sanitize_callback' => 'absint', 'default' => 7 ) );
+		register_setting( 'frc_discount', 'frc_coupon_expiry_unit', array( 'sanitize_callback' => array( 'FRC_Helpers', 'sanitize_time_unit' ), 'default' => 'days' ) );
 		register_setting( 'frc_discount', 'frc_coupon_usage_limit', array( 'sanitize_callback' => 'absint', 'default' => 1 ) );
 		register_setting( 'frc_discount', 'frc_exclude_sale_items', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
 		register_setting( 'frc_discount', 'frc_exclude_product_ids', array( 'sanitize_callback' => array( $this, 'sanitize_id_list' ) ) );
@@ -103,12 +109,26 @@ class FRC_Admin_Settings {
 		register_setting( 'frc_popup', 'frc_enable_guest_capture', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
 		register_setting( 'frc_popup', 'frc_enable_exit_intent', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
 		register_setting( 'frc_popup', 'frc_popup_delay_seconds', array( 'sanitize_callback' => 'absint', 'default' => 30 ) );
+		register_setting( 'frc_popup', 'frc_popup_delay_unit', array( 'sanitize_callback' => array( 'FRC_Helpers', 'sanitize_time_unit' ), 'default' => 'seconds' ) );
 		register_setting( 'frc_popup', 'frc_popup_message', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 		register_setting( 'frc_popup', 'frc_popup_button_text', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 		register_setting( 'frc_popup', 'frc_browse_followup_hours', array( 'sanitize_callback' => 'absint', 'default' => 2 ) );
+		register_setting( 'frc_popup', 'frc_browse_followup_unit', array( 'sanitize_callback' => array( 'FRC_Helpers', 'sanitize_time_unit' ), 'default' => 'hours' ) );
+
+		// Guest Tracking (Pro).
+		register_setting( 'frc_guest_tracking', 'frc_enable_guest_tracking', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
+		register_setting( 'frc_guest_tracking', 'frc_guest_capture_method', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => 'popup' ) );
+		register_setting( 'frc_guest_tracking', 'frc_guest_popup_timing', array( 'sanitize_callback' => 'sanitize_text_field', 'default' => 'exit_intent' ) );
+		register_setting( 'frc_guest_tracking', 'frc_guest_force_login', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
+		register_setting( 'frc_guest_tracking', 'frc_guest_pre_checkout_capture', array( 'sanitize_callback' => 'absint', 'default' => 0 ) );
+		register_setting( 'frc_guest_tracking', 'frc_guest_cart_retention', array( 'sanitize_callback' => 'absint', 'default' => 30 ) );
+		register_setting( 'frc_guest_tracking', 'frc_guest_cart_retention_unit', array( 'sanitize_callback' => array( 'FRC_Helpers', 'sanitize_time_unit' ), 'default' => 'days' ) );
+		register_setting( 'frc_guest_tracking', 'frc_guest_exclude_countries', array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		register_setting( 'frc_guest_tracking', 'frc_guest_exclude_ips', array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
 
 		// Compliance.
 		register_setting( 'frc_compliance', 'frc_data_retention_days', array( 'sanitize_callback' => 'absint', 'default' => 90 ) );
+		register_setting( 'frc_compliance', 'frc_data_retention_unit', array( 'sanitize_callback' => array( 'FRC_Helpers', 'sanitize_time_unit' ), 'default' => 'days' ) );
 		register_setting( 'frc_compliance', 'frc_optout_page_url', array( 'sanitize_callback' => 'esc_url_raw' ) );
 	}
 
@@ -256,15 +276,16 @@ class FRC_Admin_Settings {
 			<nav class="nav-tab-wrapper frc-tabs">
 				<?php
 				$tabs = array(
-					'general'    => __( 'General', 'flexi-revive-cart' ),
-					'language'   => __( 'Language', 'flexi-revive-cart' ),
-					'email'      => __( 'Email', 'flexi-revive-cart' ),
-					'discount'   => FRC_PRO_ACTIVE ? __( 'Discounts', 'flexi-revive-cart' ) : __( 'Discounts (Pro)', 'flexi-revive-cart' ),
-					'sms'        => FRC_PRO_ACTIVE ? __( 'SMS', 'flexi-revive-cart' ) : __( 'SMS (Pro)', 'flexi-revive-cart' ),
-					'whatsapp'   => FRC_PRO_ACTIVE ? __( 'WhatsApp', 'flexi-revive-cart' ) : __( 'WhatsApp (Pro)', 'flexi-revive-cart' ),
-					'push'       => FRC_PRO_ACTIVE ? __( 'Push', 'flexi-revive-cart' ) : __( 'Push (Pro)', 'flexi-revive-cart' ),
-					'popup'      => FRC_PRO_ACTIVE ? __( 'Popups', 'flexi-revive-cart' ) : __( 'Popups (Pro)', 'flexi-revive-cart' ),
-					'compliance' => __( 'Compliance', 'flexi-revive-cart' ),
+					'general'        => __( 'General', 'flexi-revive-cart' ),
+					'language'       => __( 'Language', 'flexi-revive-cart' ),
+					'email'          => __( 'Email', 'flexi-revive-cart' ),
+					'discount'       => FRC_PRO_ACTIVE ? __( 'Discounts', 'flexi-revive-cart' ) : __( 'Discounts (Pro)', 'flexi-revive-cart' ),
+					'sms'            => FRC_PRO_ACTIVE ? __( 'SMS', 'flexi-revive-cart' ) : __( 'SMS (Pro)', 'flexi-revive-cart' ),
+					'whatsapp'       => FRC_PRO_ACTIVE ? __( 'WhatsApp', 'flexi-revive-cart' ) : __( 'WhatsApp (Pro)', 'flexi-revive-cart' ),
+					'push'           => FRC_PRO_ACTIVE ? __( 'Push', 'flexi-revive-cart' ) : __( 'Push (Pro)', 'flexi-revive-cart' ),
+					'popup'          => FRC_PRO_ACTIVE ? __( 'Popups', 'flexi-revive-cart' ) : __( 'Popups (Pro)', 'flexi-revive-cart' ),
+					'guest_tracking' => FRC_PRO_ACTIVE ? __( 'Guest Tracking', 'flexi-revive-cart' ) : __( 'Guest Tracking (Pro)', 'flexi-revive-cart' ),
+					'compliance'     => __( 'Compliance', 'flexi-revive-cart' ),
 				);
 				foreach ( $tabs as $tab_id => $tab_label ) {
 					$class = ( $tab_id === $active_tab ) ? 'nav-tab nav-tab-active' : 'nav-tab';
@@ -308,6 +329,10 @@ class FRC_Admin_Settings {
 					case 'popup':
 						settings_fields( 'frc_popup' );
 						$this->render_popup_settings();
+						break;
+					case 'guest_tracking':
+						settings_fields( 'frc_guest_tracking' );
+						$this->render_guest_tracking_settings();
 						break;
 					case 'compliance':
 						settings_fields( 'frc_compliance' );
@@ -394,12 +419,23 @@ class FRC_Admin_Settings {
 				<td><label><input type="checkbox" name="frc_enable_tracking" value="1" <?php checked( get_option( 'frc_enable_tracking', '1' ) ); ?> /> <?php esc_html_e( 'Track abandoned carts', 'flexi-revive-cart' ); ?></label></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Abandonment Timeout (minutes)', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" name="frc_abandonment_timeout" value="<?php echo esc_attr( get_option( 'frc_abandonment_timeout', 60 ) ); ?>" min="5" max="1440" class="small-text" /></td>
+				<th><?php esc_html_e( 'Abandonment Timeout', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_abandonment_timeout" value="<?php echo esc_attr( get_option( 'frc_abandonment_timeout', 60 ) ); ?>" min="1" class="small-text" />
+					<?php $this->render_time_unit_select( 'frc_abandonment_timeout_unit', get_option( 'frc_abandonment_timeout_unit', 'minutes' ) ); ?>
+					<p class="description"><?php esc_html_e( 'Time after which an inactive cart is considered abandoned.', 'flexi-revive-cart' ); ?></p>
+					<?php if ( ! FRC_PRO_ACTIVE ) : ?>
+					<p class="description" style="color:#d63638;"><?php esc_html_e( 'Free version: weeks, months, and years require Pro.', 'flexi-revive-cart' ); ?></p>
+					<?php endif; ?>
+				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Auto-delete carts after (days)', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" name="frc_auto_delete_days" value="<?php echo esc_attr( get_option( 'frc_auto_delete_days', 90 ) ); ?>" min="7" max="365" class="small-text" /></td>
+				<th><?php esc_html_e( 'Auto-delete carts after', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_auto_delete_interval" value="<?php echo esc_attr( get_option( 'frc_auto_delete_interval', get_option( 'frc_auto_delete_days', 90 ) ) ); ?>" min="1" class="small-text" />
+					<?php $this->render_time_unit_select( 'frc_auto_delete_unit', get_option( 'frc_auto_delete_unit', 'days' ) ); ?>
+					<p class="description"><?php esc_html_e( 'Automatically delete abandoned cart data after this period.', 'flexi-revive-cart' ); ?></p>
+				</td>
 			</tr>
 			<?php if ( ! FRC_PRO_ACTIVE ) : ?>
 			<tr>
@@ -470,10 +506,10 @@ class FRC_Admin_Settings {
 				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Reminder Interval (hours)', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Reminder Interval', 'flexi-revive-cart' ); ?></th>
 				<td>
 					<input type="number" name="frc_reminder_interval" value="<?php echo esc_attr( $reminder_interval ); ?>" min="1" class="small-text" />
-					<span><?php esc_html_e( 'hours', 'flexi-revive-cart' ); ?></span>
+					<?php $this->render_time_unit_select( 'frc_reminder_interval_unit', get_option( 'frc_reminder_interval_unit', 'hours' ) ); ?>
 					<p class="description"><?php esc_html_e( 'Time between each reminder email. All reminders are sent at this interval apart.', 'flexi-revive-cart' ); ?></p>
 				</td>
 			</tr>
@@ -597,13 +633,14 @@ class FRC_Admin_Settings {
 				</td>
 			</tr>
 			<tr>
-				<th scope="row"><?php esc_html_e( 'Coupon Expiry (days)', 'flexi-revive-cart' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Coupon Expiry', 'flexi-revive-cart' ); ?></th>
 				<td>
 					<input type="number" name="frc_coupon_expiry_days"
 						value="<?php echo esc_attr( $expiry_days ); ?>"
 						min="1" class="small-text"
 						<?php disabled( $is_locked ); ?> />
-					<p class="description"><?php esc_html_e( 'Number of days from the moment the coupon is generated before it expires.', 'flexi-revive-cart' ); ?></p>
+					<?php $this->render_time_unit_select( 'frc_coupon_expiry_unit', get_option( 'frc_coupon_expiry_unit', 'days' ), $is_locked ); ?>
+					<p class="description"><?php esc_html_e( 'Time from the moment the coupon is generated before it expires.', 'flexi-revive-cart' ); ?></p>
 				</td>
 			</tr>
 			<tr>
@@ -801,8 +838,11 @@ class FRC_Admin_Settings {
 				<td><label><input type="checkbox" name="frc_enable_exit_intent" value="1" <?php checked( get_option( 'frc_enable_exit_intent', '0' ) ); ?> <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></label></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Popup Delay (seconds)', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" name="frc_popup_delay_seconds" value="<?php echo esc_attr( get_option( 'frc_popup_delay_seconds', 30 ) ); ?>" min="5" max="300" class="small-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></td>
+				<th><?php esc_html_e( 'Popup Delay', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_popup_delay_seconds" value="<?php echo esc_attr( get_option( 'frc_popup_delay_seconds', 30 ) ); ?>" min="1" class="small-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> />
+					<?php $this->render_time_unit_select( 'frc_popup_delay_unit', get_option( 'frc_popup_delay_unit', 'seconds' ), ! FRC_PRO_ACTIVE ); ?>
+				</td>
 			</tr>
 			<tr>
 				<th><?php esc_html_e( 'Popup Message', 'flexi-revive-cart' ); ?></th>
@@ -813,10 +853,11 @@ class FRC_Admin_Settings {
 				<td><input type="text" name="frc_popup_button_text" value="<?php echo esc_attr( get_option( 'frc_popup_button_text', __( 'Save My Cart', 'flexi-revive-cart' ) ) ); ?>" class="regular-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> /></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Browse Abandonment Follow-up (hours)', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Browse Abandonment Follow-up', 'flexi-revive-cart' ); ?></th>
 				<td>
-					<input type="number" name="frc_browse_followup_hours" value="<?php echo esc_attr( get_option( 'frc_browse_followup_hours', 2 ) ); ?>" min="1" max="72" class="small-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> />
-					<p class="description"><?php esc_html_e( 'Hours after a product page view before sending a browse abandonment follow-up email.', 'flexi-revive-cart' ); ?></p>
+					<input type="number" name="frc_browse_followup_hours" value="<?php echo esc_attr( get_option( 'frc_browse_followup_hours', 2 ) ); ?>" min="1" class="small-text" <?php disabled( ! FRC_PRO_ACTIVE ); ?> />
+					<?php $this->render_time_unit_select( 'frc_browse_followup_unit', get_option( 'frc_browse_followup_unit', 'hours' ), ! FRC_PRO_ACTIVE ); ?>
+					<p class="description"><?php esc_html_e( 'Time after a product page view before sending a browse abandonment follow-up email.', 'flexi-revive-cart' ); ?></p>
 				</td>
 			</tr>
 		</table>
@@ -869,13 +910,117 @@ class FRC_Admin_Settings {
 		<?php
 	}
 
+	/** Render Guest Tracking Settings tab (Pro). */
+	private function render_guest_tracking_settings() {
+		$this->maybe_show_pro_notice();
+		$is_locked          = ! FRC_PRO_ACTIVE;
+		$capture_method     = get_option( 'frc_guest_capture_method', 'popup' );
+		$popup_timing       = get_option( 'frc_guest_popup_timing', 'exit_intent' );
+		$retention_value    = get_option( 'frc_guest_cart_retention', 30 );
+		$retention_unit     = get_option( 'frc_guest_cart_retention_unit', 'days' );
+		?>
+		<table class="form-table <?php echo $is_locked ? 'frc-pro-locked' : ''; ?>">
+			<tr>
+				<th><?php esc_html_e( 'Track Guest Carts', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="frc_enable_guest_tracking" value="1"
+							<?php checked( get_option( 'frc_enable_guest_tracking', '0' ) ); ?>
+							<?php disabled( $is_locked ); ?> />
+						<?php esc_html_e( 'Enable tracking of guest (non-logged-in) user carts.', 'flexi-revive-cart' ); ?>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Capture Method', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select name="frc_guest_capture_method" <?php disabled( $is_locked ); ?>>
+						<option value="popup" <?php selected( $capture_method, 'popup' ); ?>><?php esc_html_e( 'Popup', 'flexi-revive-cart' ); ?></option>
+						<option value="checkout_field" <?php selected( $capture_method, 'checkout_field' ); ?>><?php esc_html_e( 'Checkout Field', 'flexi-revive-cart' ); ?></option>
+						<option value="force_login" <?php selected( $capture_method, 'force_login' ); ?>><?php esc_html_e( 'Force Login', 'flexi-revive-cart' ); ?></option>
+					</select>
+					<p class="description"><?php esc_html_e( 'How to capture guest email addresses for cart recovery.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Popup Timing', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select name="frc_guest_popup_timing" <?php disabled( $is_locked ); ?>>
+						<option value="exit_intent" <?php selected( $popup_timing, 'exit_intent' ); ?>><?php esc_html_e( 'Exit-Intent', 'flexi-revive-cart' ); ?></option>
+						<option value="add_to_cart" <?php selected( $popup_timing, 'add_to_cart' ); ?>><?php esc_html_e( 'Add-to-Cart', 'flexi-revive-cart' ); ?></option>
+						<option value="checkout_page" <?php selected( $popup_timing, 'checkout_page' ); ?>><?php esc_html_e( 'Checkout Page', 'flexi-revive-cart' ); ?></option>
+					</select>
+					<p class="description"><?php esc_html_e( 'When to display the email capture popup to guest users.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Force Login', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="frc_guest_force_login" value="1"
+							<?php checked( get_option( 'frc_guest_force_login', '0' ) ); ?>
+							<?php disabled( $is_locked ); ?> />
+						<?php esc_html_e( 'Redirect guests to login/register before checkout.', 'flexi-revive-cart' ); ?>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Pre-Checkout Email Capture', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label>
+						<input type="checkbox" name="frc_guest_pre_checkout_capture" value="1"
+							<?php checked( get_option( 'frc_guest_pre_checkout_capture', '0' ) ); ?>
+							<?php disabled( $is_locked ); ?> />
+						<?php esc_html_e( 'Show email capture popup before checkout.', 'flexi-revive-cart' ); ?>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Guest Cart Retention', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_guest_cart_retention"
+						value="<?php echo esc_attr( $retention_value ); ?>"
+						min="1" class="small-text"
+						<?php disabled( $is_locked ); ?> />
+					<?php $this->render_time_unit_select( 'frc_guest_cart_retention_unit', $retention_unit, $is_locked ); ?>
+					<p class="description"><?php esc_html_e( 'How long to retain guest cart data before automatic deletion.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Exclude by Country', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" name="frc_guest_exclude_countries"
+						value="<?php echo esc_attr( get_option( 'frc_guest_exclude_countries', '' ) ); ?>"
+						class="regular-text"
+						placeholder="<?php esc_attr_e( 'e.g. US,GB,DE', 'flexi-revive-cart' ); ?>"
+						<?php disabled( $is_locked ); ?> />
+					<p class="description"><?php esc_html_e( 'Comma-separated list of country codes to exclude from guest tracking.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Exclude by IP', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<textarea name="frc_guest_exclude_ips" class="large-text" rows="3"
+						placeholder="<?php esc_attr_e( 'One IP address per line', 'flexi-revive-cart' ); ?>"
+						<?php disabled( $is_locked ); ?>><?php echo esc_textarea( get_option( 'frc_guest_exclude_ips', '' ) ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'IP addresses to blacklist from guest tracking (one per line).', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+
 	/** Render Compliance Settings tab. */
 	private function render_compliance_settings() {
 		?>
 		<table class="form-table">
 			<tr>
-				<th><?php esc_html_e( 'Data Retention (days)', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" name="frc_data_retention_days" value="<?php echo esc_attr( get_option( 'frc_data_retention_days', 90 ) ); ?>" min="7" max="730" class="small-text" /></td>
+				<th><?php esc_html_e( 'Data Retention', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" name="frc_data_retention_days" value="<?php echo esc_attr( get_option( 'frc_data_retention_days', 90 ) ); ?>" min="1" class="small-text" />
+					<?php $this->render_time_unit_select( 'frc_data_retention_unit', get_option( 'frc_data_retention_unit', 'days' ) ); ?>
+					<p class="description"><?php esc_html_e( 'Abandoned cart data older than this period will be automatically deleted.', 'flexi-revive-cart' ); ?></p>
+				</td>
 			</tr>
 			<tr>
 				<th><?php esc_html_e( 'Opt-Out Page URL', 'flexi-revive-cart' ); ?></th>
@@ -891,6 +1036,33 @@ class FRC_Admin_Settings {
 				</td>
 			</tr>
 		</table>
+		<?php
+	}
+
+	/**
+	 * Render a time unit dropdown selector.
+	 *
+	 * Pro-only units (weeks, months, years) are shown as disabled options in the Free version.
+	 *
+	 * @param string $name         The option name for the select element.
+	 * @param string $current_unit Current selected unit value.
+	 * @param bool   $disabled     Whether the entire select is disabled.
+	 */
+	private function render_time_unit_select( $name, $current_unit, $disabled = false ) {
+		$all_units  = FRC_Helpers::get_all_time_units();
+		$pro_units  = FRC_Helpers::get_pro_time_units();
+		?>
+		<select name="<?php echo esc_attr( $name ); ?>" <?php disabled( $disabled ); ?>>
+			<?php foreach ( $all_units as $unit_key => $unit_label ) :
+				$is_pro_unit = in_array( $unit_key, $pro_units, true );
+				$option_disabled = ( ! FRC_PRO_ACTIVE && $is_pro_unit );
+				$label = $is_pro_unit && ! FRC_PRO_ACTIVE ? $unit_label . ' (Pro)' : $unit_label;
+			?>
+			<option value="<?php echo esc_attr( $unit_key ); ?>" <?php selected( $current_unit, $unit_key ); ?> <?php disabled( $option_disabled ); ?>>
+				<?php echo esc_html( $label ); ?>
+			</option>
+			<?php endforeach; ?>
+		</select>
 		<?php
 	}
 

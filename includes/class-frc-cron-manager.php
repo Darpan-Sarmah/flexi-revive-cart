@@ -55,8 +55,13 @@ class FRC_Cron_Manager {
 
 		global $wpdb;
 
-		$timeout   = (int) get_option( 'frc_abandonment_timeout', 60 );
-		$interval  = (int) get_option( 'frc_reminder_interval', 1 );
+		$timeout       = (int) get_option( 'frc_abandonment_timeout', 60 );
+		$timeout_unit  = get_option( 'frc_abandonment_timeout_unit', 'minutes' );
+		$interval      = (int) get_option( 'frc_reminder_interval', 1 );
+		$interval_unit = get_option( 'frc_reminder_interval_unit', 'hours' );
+
+		$timeout_seconds  = FRC_Helpers::convert_to_seconds( $timeout, $timeout_unit );
+		$interval_seconds = FRC_Helpers::convert_to_seconds( $interval, $interval_unit );
 
 		// Fetch abandoned carts not yet expired or recovered, in batches of 20.
 		$carts = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -67,7 +72,7 @@ class FRC_Cron_Manager {
 				   AND abandoned_at <= %s
 				 ORDER BY abandoned_at ASC
 				 LIMIT 20",
-				gmdate( 'Y-m-d H:i:s', time() - ( $timeout * MINUTE_IN_SECONDS ) )
+				gmdate( 'Y-m-d H:i:s', time() - $timeout_seconds )
 			)
 		);
 
@@ -79,7 +84,7 @@ class FRC_Cron_Manager {
 		$email_manager = new FRC_Email_Manager();
 
 		foreach ( $carts as $cart ) {
-			$stage = $this->get_due_stage( $cart, $interval );
+			$stage = $this->get_due_stage( $cart, $interval_seconds );
 			if ( $stage ) {
 				// Fire hook before processing (wrapped in try-catch for third-party safety).
 				try {
@@ -100,7 +105,7 @@ class FRC_Cron_Manager {
 
 			// Expire carts after the last reminder + 24h buffer.
 			$max_reminders_count = FRC_PRO_ACTIVE ? (int) get_option( 'frc_num_reminders', 3 ) : min( (int) get_option( 'frc_num_reminders', 3 ), 3 );
-			$expire_after        = ( $interval * $max_reminders_count + 24 ) * HOUR_IN_SECONDS;
+			$expire_after        = ( $interval_seconds * $max_reminders_count ) + DAY_IN_SECONDS;
 			if ( ( time() - strtotime( $cart->abandoned_at ) ) > $expire_after ) {
 				$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 					$wpdb->prefix . 'frc_abandoned_carts',
@@ -116,11 +121,11 @@ class FRC_Cron_Manager {
 	/**
 	 * Determine which reminder stage is due for a cart, if any.
 	 *
-	 * @param object $cart     Cart row.
-	 * @param int    $interval Interval in hours between each reminder.
+	 * @param object $cart             Cart row.
+	 * @param int    $interval_seconds Interval in seconds between each reminder.
 	 * @return int|false Stage number or false.
 	 */
-	private function get_due_stage( $cart, $interval ) {
+	private function get_due_stage( $cart, $interval_seconds ) {
 		$emails_sent   = (int) $cart->emails_sent;
 		$next_stage    = $emails_sent + 1;
 		$max_reminders = FRC_PRO_ACTIVE ? (int) get_option( 'frc_num_reminders', 3 ) : min( (int) get_option( 'frc_num_reminders', 3 ), 3 );
@@ -129,7 +134,7 @@ class FRC_Cron_Manager {
 			return false;
 		}
 
-		$due_after = strtotime( $cart->abandoned_at ) + ( $interval * $next_stage * HOUR_IN_SECONDS );
+		$due_after = strtotime( $cart->abandoned_at ) + ( $interval_seconds * $next_stage );
 
 		if ( time() >= $due_after ) {
 			return $next_stage;
@@ -194,12 +199,15 @@ class FRC_Cron_Manager {
 	public function cleanup_old_carts() {
 		global $wpdb;
 
-		$days = (int) get_option( 'frc_data_retention_days', 90 );
-		if ( $days < 1 ) {
+		$retention_value = (int) get_option( 'frc_data_retention_days', 90 );
+		$retention_unit  = get_option( 'frc_data_retention_unit', 'days' );
+
+		if ( $retention_value < 1 ) {
 			return;
 		}
 
-		$cutoff = gmdate( 'Y-m-d H:i:s', strtotime( "-{$days} days" ) );
+		$retention_seconds = FRC_Helpers::convert_to_seconds( $retention_value, $retention_unit );
+		$cutoff            = gmdate( 'Y-m-d H:i:s', time() - $retention_seconds );
 
 		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 			$wpdb->prepare(
