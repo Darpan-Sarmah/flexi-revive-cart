@@ -31,10 +31,23 @@ class FRC_Pro_License {
 	/**
 	 * HMAC signing key for license validation.
 	 * This MUST be kept in sync with the license generator.
+	 * Override via the FRC_PRO_LICENSE_SECRET constant in wp-config.php.
 	 *
 	 * @var string
 	 */
-	const LICENSE_SECRET = 'frc_pro_2024_s3cr3t_k3y_!@#$%^&*';
+	const LICENSE_SECRET_DEFAULT = 'frc_pro_2024_s3cr3t_k3y_!@#$%^&*';
+
+	/**
+	 * Get the license signing secret.
+	 *
+	 * @return string
+	 */
+	private static function get_license_secret() {
+		if ( defined( 'FRC_PRO_LICENSE_SECRET' ) ) {
+			return FRC_PRO_LICENSE_SECRET;
+		}
+		return self::LICENSE_SECRET_DEFAULT;
+	}
 
 	/**
 	 * Transient TTL for cached license validation (12 hours).
@@ -129,7 +142,7 @@ class FRC_Pro_License {
 		}
 
 		// Verify HMAC signature.
-		$expected_hmac = hash_hmac( 'sha256', $payload_b64, self::LICENSE_SECRET );
+		$expected_hmac = hash_hmac( 'sha256', $payload_b64, self::get_license_secret() );
 		if ( ! hash_equals( $expected_hmac, $provided_hmac ) ) {
 			return false;
 		}
@@ -269,7 +282,7 @@ class FRC_Pro_License {
 		) );
 
 		$payload_b64 = base64_encode( $payload ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$hmac        = hash_hmac( 'sha256', $payload_b64, self::LICENSE_SECRET );
+		$hmac        = hash_hmac( 'sha256', $payload_b64, self::get_license_secret() );
 
 		return 'FRC-' . $payload_b64 . '-' . $hmac;
 	}

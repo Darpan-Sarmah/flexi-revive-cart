@@ -125,18 +125,22 @@ class FRC_Pro_Browse {
 	 * @param object $event Browse event row.
 	 */
 	private function send_browse_followup( $event ) {
+		$discount_pct = (int) get_option( 'frc_discount_percentage', 10 );
+
 		$subject = sprintf(
 			/* translators: %s: product name */
-			__( 'You were interested in %s – here\'s 5%% off!', 'flexi-revive-cart-pro' ),
-			$event->product_name
+			__( 'You were interested in %s – here\'s %d%% off!', 'flexi-revive-cart-pro' ),
+			$event->product_name,
+			$discount_pct
 		);
 
 		$body = sprintf(
 			'<p>' . esc_html__( 'Hi there,', 'flexi-revive-cart-pro' ) . '</p>' .
-			'<p>' . esc_html__( 'You recently viewed %1$s. We noticed you didn\'t add it to your cart – here\'s 5%% off to help you decide!', 'flexi-revive-cart-pro' ) . '</p>' .
+			'<p>' . esc_html__( 'You recently viewed %1$s. We noticed you didn\'t add it to your cart – here\'s %3$d%% off to help you decide!', 'flexi-revive-cart-pro' ) . '</p>' .
 			'<p><a href="%2$s" style="background:#7f54b3;color:#fff;padding:12px 24px;text-decoration:none;border-radius:4px;">' . esc_html__( 'Shop Now', 'flexi-revive-cart-pro' ) . '</a></p>',
 			esc_html( $event->product_name ),
-			esc_url( $event->product_url )
+			esc_url( $event->product_url ),
+			$discount_pct
 		);
 
 		$from_name  = get_option( 'frc_from_name', get_bloginfo( 'name' ) );

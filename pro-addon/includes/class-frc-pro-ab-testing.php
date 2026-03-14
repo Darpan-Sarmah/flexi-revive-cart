@@ -123,8 +123,10 @@ class FRC_Pro_AB_Testing {
 			"SELECT * FROM {$wpdb->prefix}frc_ab_tests WHERE status = 'active'" // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		);
 
+		$min_sample = (int) apply_filters( 'frc_ab_test_min_sample', 100 );
+
 		foreach ( $tests as $test ) {
-			if ( $test->variant_a_sent < 100 || $test->variant_b_sent < 100 ) {
+			if ( $test->variant_a_sent < $min_sample || $test->variant_b_sent < $min_sample ) {
 				continue;
 			}
 

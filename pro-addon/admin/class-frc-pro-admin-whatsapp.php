@@ -90,7 +90,7 @@ class FRC_Pro_Admin_WhatsApp {
 				$(this).prop('disabled', true);
 				$result.text('<?php echo esc_js( __( 'Sending…', 'flexi-revive-cart-pro' ) ); ?>');
 
-				$.post(typeof frcAdmin !== 'undefined' ? frcAdmin.ajaxUrl : ajaxurl, {
+				$.post(ajaxurl, {
 					action:        'frc_send_whatsapp_bulk',
 					nonce:         typeof frcAdmin !== 'undefined' ? frcAdmin.nonce : '',
 					campaign_name: name,
