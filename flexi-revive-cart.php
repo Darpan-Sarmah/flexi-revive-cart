@@ -32,6 +32,24 @@ define( 'FRC_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'FRC_PRO_ACTIVE', defined( 'FRC_PRO_VERSION' ) );
 
 /**
+ * Check if the Pro add-on is active AND has a valid license.
+ *
+ * This is the authoritative check for Pro feature availability.
+ * Unlike the FRC_PRO_ACTIVE constant (which only checks if the constant
+ * exists at load time), this function also verifies the Pro add-on has
+ * confirmed its license via the frc_pro_license_valid filter.
+ *
+ * Security: Simply defining FRC_PRO_VERSION in wp-config.php will NOT
+ * unlock Pro features because the frc_pro_license_valid filter will
+ * still return false without the actual Pro plugin loaded and licensed.
+ *
+ * @return bool True if Pro is active and licensed.
+ */
+function frc_is_pro_licensed() {
+	return defined( 'FRC_PRO_VERSION' ) && apply_filters( 'frc_pro_license_valid', false );
+}
+
+/**
  * Check if WooCommerce is active.
  *
  * @return bool

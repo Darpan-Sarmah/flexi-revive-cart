@@ -43,7 +43,7 @@ class FRC_Admin_Carts extends WP_List_Table {
 		<div class="wrap frc-wrap">
 			<h1>
 				<?php esc_html_e( 'Abandoned Carts', 'flexi-revive-cart' ); ?>
-				<?php if ( FRC_PRO_ACTIVE ) : ?>
+				<?php if ( frc_is_pro_licensed() ) : ?>
 				<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin.php?page=frc-carts&frc_export_csv=1' . ( isset( $_GET['status'] ) ? '&status=' . sanitize_key( wp_unslash( $_GET['status'] ) ) : '' ) ), 'frc_export_csv' ) ); ?>" class="page-title-action">
 					<?php esc_html_e( 'Export CSV', 'flexi-revive-cart' ); ?>
 				</a>

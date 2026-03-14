@@ -32,7 +32,7 @@ class FRC_Admin_Email_Editor {
 
 		// Define pro teaser template tabs (display-only, no saving/editing).
 		$pro_teasers = array();
-		if ( ! FRC_PRO_ACTIVE ) {
+		if ( ! frc_is_pro_licensed() ) {
 			$pro_teasers = array(
 				'reminder-2' => array(
 					'name'    => __( 'Urgency Reminder', 'flexi-revive-cart' ),
@@ -150,7 +150,7 @@ class FRC_Admin_Email_Editor {
 				<?php esc_html_e( 'Customize your abandoned cart email templates. Subjects and bodies are managed here and saved per language. Use the variable buttons to insert dynamic placeholders into both subjects and bodies.', 'flexi-revive-cart' ); ?>
 			</p>
 
-			<?php if ( FRC_PRO_ACTIVE ) : ?>
+			<?php if ( frc_is_pro_licensed() ) : ?>
 			<div class="notice notice-info inline">
 				<p>
 					<strong><?php esc_html_e( 'Pro:', 'flexi-revive-cart' ); ?></strong>
@@ -183,7 +183,7 @@ class FRC_Admin_Email_Editor {
 				<?php endforeach; ?>
 			</nav>
 
-			<?php if ( ! FRC_PRO_ACTIVE && ! $is_pro_teaser ) : ?>
+			<?php if ( ! frc_is_pro_licensed() && ! $is_pro_teaser ) : ?>
 			<div class="notice notice-warning inline" style="margin-top:10px;">
 				<p>
 					<?php esc_html_e( 'Urgency and Incentive/Discount templates require the Pro add-on. Install Flexi Revive Cart Pro to edit all templates, send urgency/discount emails, and use coupon features.', 'flexi-revive-cart' ); ?>
@@ -321,7 +321,7 @@ class FRC_Admin_Email_Editor {
 						do_action( 'frc_email_editor_sidebar' );
 						?>
 
-						<?php if ( ! FRC_PRO_ACTIVE ) : ?>
+						<?php if ( ! frc_is_pro_licensed() ) : ?>
 						<div class="postbox">
 							<div class="postbox-header"><h2 class="hndle"><?php esc_html_e( 'Get Pro Add-on', 'flexi-revive-cart' ); ?></h2></div>
 							<div class="inside">

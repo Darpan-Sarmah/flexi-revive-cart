@@ -35,6 +35,19 @@ add_action( 'frc_loaded', function() {
 });
 ```
 
+### `frc_pro_license_valid` (Filter)
+
+**Parameters:** `$valid` (bool) – Defaults to `false`.
+
+**When It Fires:** When the free plugin needs to check if the Pro add-on has a valid license. Used by `frc_is_pro_licensed()` to gate Pro UI features and prevent licence circumvention.
+
+**Security:** Even if `FRC_PRO_VERSION` is manually defined in `wp-config.php`, Pro features won't activate unless this filter returns `true` (which only happens when the Pro plugin has validated its license key).
+
+```php
+// The Pro add-on hooks in after license validation:
+add_filter( 'frc_pro_license_valid', '__return_true' );
+```
+
 ---
 
 ## Admin & Settings

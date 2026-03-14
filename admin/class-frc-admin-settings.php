@@ -218,7 +218,7 @@ class FRC_Admin_Settings {
 
 				// Pro teaser tabs – shown only when the Pro add-on is not active.
 				$pro_teaser_tab_ids = array();
-				if ( ! FRC_PRO_ACTIVE ) {
+				if ( ! frc_is_pro_licensed() ) {
 					$pro_teaser_tabs = array(
 						'discounts'      => __( 'Discounts', 'flexi-revive-cart' ),
 						'sms'            => __( 'SMS', 'flexi-revive-cart' ),
@@ -383,7 +383,7 @@ class FRC_Admin_Settings {
 					<p class="description"><?php esc_html_e( 'Automatically delete abandoned cart data after this period.', 'flexi-revive-cart' ); ?></p>
 				</td>
 			</tr>
-			<?php if ( ! FRC_PRO_ACTIVE ) : ?>
+			<?php if ( ! frc_is_pro_licensed() ) : ?>
 			<tr>
 				<th><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></th>
 				<td>
@@ -451,7 +451,7 @@ class FRC_Admin_Settings {
 				<th><?php esc_html_e( 'Number of Reminders', 'flexi-revive-cart' ); ?></th>
 				<td>
 					<input type="number" id="frc-num-reminders" name="frc_num_reminders" value="<?php echo esc_attr( $num_reminders ); ?>" min="1" max="<?php echo esc_attr( $max_reminders ); ?>" class="small-text" />
-					<?php if ( 3 === $max_reminders && ! FRC_PRO_ACTIVE ) : ?>
+					<?php if ( 3 === $max_reminders && ! frc_is_pro_licensed() ) : ?>
 					<p class="description"><?php esc_html_e( 'Free version allows up to 3 friendly reminders. Install the Pro add-on for unlimited reminders.', 'flexi-revive-cart' ); ?></p>
 					<?php else : ?>
 					<p class="description"><?php esc_html_e( 'Set the number of reminder emails to send per abandoned cart.', 'flexi-revive-cart' ); ?></p>
@@ -500,7 +500,7 @@ class FRC_Admin_Settings {
 						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $code, $preview_lang ); ?>><?php echo esc_html( $label ); ?></option>
 						<?php endforeach; ?>
 					</select>
-					<?php if ( ! FRC_PRO_ACTIVE ) : ?>
+					<?php if ( ! frc_is_pro_licensed() ) : ?>
 					<span class="description" style="color:#d63638;"><?php esc_html_e( 'Install the Pro add-on to test urgency and incentive emails.', 'flexi-revive-cart' ); ?></span>
 					<?php endif; ?>
 					<br style="margin-bottom:6px;" />

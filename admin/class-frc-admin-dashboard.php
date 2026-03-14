@@ -24,7 +24,7 @@ class FRC_Admin_Dashboard {
 		<div class="wrap frc-wrap">
 			<h1><?php esc_html_e( 'Flexi Revive Cart – Dashboard', 'flexi-revive-cart' ); ?></h1>
 
-			<?php if ( ! FRC_PRO_ACTIVE ) : ?>
+			<?php if ( ! frc_is_pro_licensed() ) : ?>
 			<div class="frc-pro-notice notice notice-info inline">
 				<p>
 					<?php esc_html_e( 'Install the Pro add-on for SMS, push notifications, A/B testing, exit-intent popups, and more!', 'flexi-revive-cart' ); ?>
