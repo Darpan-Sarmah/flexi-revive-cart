@@ -54,37 +54,13 @@ class FRC_Loader {
 		require_once FRC_PLUGIN_DIR . 'includes/class-frc-email-manager.php';
 		require_once FRC_PLUGIN_DIR . 'includes/class-frc-cron-manager.php';
 
-		// Pro features.
-		if ( FRC_PRO_ACTIVE ) {
-			require_once FRC_PLUGIN_DIR . 'includes/class-frc-discount-manager.php';
-			require_once FRC_PLUGIN_DIR . 'includes/class-frc-guest-capture.php';
-			require_once FRC_PLUGIN_DIR . 'includes/class-frc-sms-manager.php';
-			require_once FRC_PLUGIN_DIR . 'includes/class-frc-whatsapp-manager.php';
-			require_once FRC_PLUGIN_DIR . 'includes/class-frc-push-manager.php';
-			require_once FRC_PLUGIN_DIR . 'includes/class-frc-ab-testing.php';
-			require_once FRC_PLUGIN_DIR . 'includes/class-frc-browse-abandonment.php';
-			// Dashboard class is needed both in admin and via REST API.
-			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-dashboard.php';
-			require_once FRC_PLUGIN_DIR . 'includes/class-frc-rest-api.php';
-		}
-
 		// Admin.
 		if ( is_admin() ) {
 			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin.php';
-			if ( ! class_exists( 'FRC_Admin_Dashboard' ) ) {
-				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-dashboard.php';
-			}
+			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-dashboard.php';
 			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-settings.php';
 			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-carts.php';
-			// Email editor is available to all users (Free).
 			require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-email-editor.php';
-
-			if ( FRC_PRO_ACTIVE ) {
-				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-ab-results.php';
-				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-whatsapp.php';
-				require_once FRC_PLUGIN_DIR . 'admin/class-frc-admin-analytics.php';
-				require_once FRC_PLUGIN_DIR . 'admin/class-frc-export.php';
-			}
 		}
 
 		// Public-facing.
@@ -104,13 +80,6 @@ class FRC_Loader {
 		new FRC_Cron_Manager();
 		new FRC_Compliance();
 
-		// Pro features.
-		if ( FRC_PRO_ACTIVE ) {
-			new FRC_Guest_Capture();
-			new FRC_Browse_Abandonment();
-			new FRC_REST_API();
-		}
-
 		// Admin.
 		if ( is_admin() ) {
 			new FRC_Admin_Settings();
@@ -119,6 +88,13 @@ class FRC_Loader {
 
 		// Public.
 		new FRC_Public();
+
+		/**
+		 * Fires after the Free plugin is fully loaded and all core components are initialised.
+		 *
+		 * Pro add-ons should hook here to load their own files and register hooks.
+		 */
+		do_action( 'frc_loaded' );
 	}
 
 	/**
