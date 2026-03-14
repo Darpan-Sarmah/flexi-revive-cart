@@ -40,13 +40,6 @@ class FRC_Email_Manager {
 			return false;
 		}
 
-		// Check if this reminder position is enabled.
-		$reminder_enabled = get_option( 'frc_reminder_enabled', array( 1, 1, 1 ) );
-		$position         = $stage - 1;
-		if ( isset( $reminder_enabled[ $position ] ) && ! (int) $reminder_enabled[ $position ] ) {
-			return false;
-		}
-
 		// In Free version, cap at 3 reminders and force type to friendly.
 		if ( ! FRC_PRO_ACTIVE ) {
 			if ( $cart->emails_sent >= 3 ) {
@@ -54,11 +47,10 @@ class FRC_Email_Manager {
 			}
 		}
 
-		// Determine the template to use based on reminder type configuration.
-		$reminder_types = get_option( 'frc_reminder_types', array( 'friendly', 'urgency', 'incentive' ) );
-		$reminder_type  = isset( $reminder_types[ $position ] ) ? $reminder_types[ $position ] : 'friendly';
+		// Determine the template to use based on single reminder type setting.
+		$reminder_type = get_option( 'frc_reminder_type', 'friendly' );
 
-		// In Free version, force all types to friendly.
+		// In Free version, force type to friendly.
 		if ( ! FRC_PRO_ACTIVE ) {
 			$reminder_type = 'friendly';
 		}
