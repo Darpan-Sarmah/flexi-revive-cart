@@ -101,7 +101,7 @@ class FRC_Pro_Browse {
 					"SELECT COUNT(*) FROM {$wpdb->prefix}frc_abandoned_carts
 					 WHERE user_email = %s AND status = 'abandoned' AND cart_contents LIKE %s",
 					$event->user_email,
-					'%"product_id":' . $event->product_id . '%'
+					'%"product_id":' . $wpdb->esc_like( $event->product_id ) . '%'
 				)
 			);
 

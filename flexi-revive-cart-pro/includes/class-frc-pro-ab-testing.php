@@ -78,13 +78,12 @@ class FRC_Pro_AB_Testing {
 	 */
 	private function record_send( $test_id, $variant ) {
 		global $wpdb;
-		$field = 'a' === $variant ? 'variant_a_sent' : 'variant_b_sent';
-		$allowed = array( 'variant_a_sent', 'variant_b_sent' );
-		if ( ! in_array( $field, $allowed, true ) ) {
-			return;
+		$table = $wpdb->prefix . 'frc_ab_tests';
+		if ( 'a' === $variant ) {
+			$wpdb->query( $wpdb->prepare( "UPDATE `{$table}` SET `variant_a_sent` = `variant_a_sent` + 1 WHERE id = %d", $test_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		} elseif ( 'b' === $variant ) {
+			$wpdb->query( $wpdb->prepare( "UPDATE `{$table}` SET `variant_b_sent` = `variant_b_sent` + 1 WHERE id = %d", $test_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		}
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->prefix}frc_ab_tests SET `{$field}` = `{$field}` + 1 WHERE id = %d", $test_id ) );
 	}
 
 	/**
@@ -95,13 +94,12 @@ class FRC_Pro_AB_Testing {
 	 */
 	public function record_open( $test_id, $variant ) {
 		global $wpdb;
-		$field = 'a' === $variant ? 'variant_a_opened' : 'variant_b_opened';
-		$allowed = array( 'variant_a_opened', 'variant_b_opened' );
-		if ( ! in_array( $field, $allowed, true ) ) {
-			return;
+		$table = $wpdb->prefix . 'frc_ab_tests';
+		if ( 'a' === $variant ) {
+			$wpdb->query( $wpdb->prepare( "UPDATE `{$table}` SET `variant_a_opened` = `variant_a_opened` + 1 WHERE id = %d", $test_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		} elseif ( 'b' === $variant ) {
+			$wpdb->query( $wpdb->prepare( "UPDATE `{$table}` SET `variant_b_opened` = `variant_b_opened` + 1 WHERE id = %d", $test_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		}
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->prefix}frc_ab_tests SET `{$field}` = `{$field}` + 1 WHERE id = %d", $test_id ) );
 	}
 
 	/**

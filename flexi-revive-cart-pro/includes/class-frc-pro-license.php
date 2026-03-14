@@ -29,24 +29,19 @@ class FRC_Pro_License {
 	private static $instance = null;
 
 	/**
-	 * HMAC signing key for license validation.
-	 * This MUST be kept in sync with the license generator.
-	 * Override via the FRC_PRO_LICENSE_SECRET constant in wp-config.php.
-	 *
-	 * @var string
-	 */
-	const LICENSE_SECRET_DEFAULT = 'frc_pro_2024_s3cr3t_k3y_!@#$%^&*';
-
-	/**
 	 * Get the license signing secret.
 	 *
-	 * @return string
+	 * The FRC_PRO_LICENSE_SECRET constant MUST be defined in wp-config.php
+	 * and kept in sync with the license generator. Without it, license
+	 * validation will always fail.
+	 *
+	 * @return string|false The secret key, or false if not configured.
 	 */
 	private static function get_license_secret() {
-		if ( defined( 'FRC_PRO_LICENSE_SECRET' ) ) {
+		if ( defined( 'FRC_PRO_LICENSE_SECRET' ) && FRC_PRO_LICENSE_SECRET ) {
 			return FRC_PRO_LICENSE_SECRET;
 		}
-		return self::LICENSE_SECRET_DEFAULT;
+		return false;
 	}
 
 	/**
@@ -142,7 +137,11 @@ class FRC_Pro_License {
 		}
 
 		// Verify HMAC signature.
-		$expected_hmac = hash_hmac( 'sha256', $payload_b64, self::get_license_secret() );
+		$secret = self::get_license_secret();
+		if ( false === $secret ) {
+			return false;
+		}
+		$expected_hmac = hash_hmac( 'sha256', $payload_b64, $secret );
 		if ( ! hash_equals( $expected_hmac, $provided_hmac ) ) {
 			return false;
 		}
@@ -282,7 +281,11 @@ class FRC_Pro_License {
 		) );
 
 		$payload_b64 = base64_encode( $payload ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-		$hmac        = hash_hmac( 'sha256', $payload_b64, self::get_license_secret() );
+		$secret      = self::get_license_secret();
+		if ( false === $secret ) {
+			return new \WP_Error( 'frc_no_secret', __( 'FRC_PRO_LICENSE_SECRET is not defined. Add it to wp-config.php.', 'flexi-revive-cart-pro' ) );
+		}
+		$hmac = hash_hmac( 'sha256', $payload_b64, $secret );
 
 		return 'FRC-' . $payload_b64 . '-' . $hmac;
 	}
