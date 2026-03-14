@@ -214,6 +214,20 @@
 	margin-bottom: 4px;
 }
 
+/* ─── Email editor pro teaser ────────────────────────────────────────────── */
+.frc-email-preview {
+	border: 1px solid #ddd;
+	padding: 20px;
+	background: #fff;
+	min-height: 250px;
+	border-radius: 4px;
+}
+
+.frc-pro-var-btn {
+	border-color: #7f54b3 !important;
+	color: #7f54b3 !important;
+}
+
 /* ─── Responsive ─────────────────────────────────────────────────────────── */
 @media screen and (max-width: 782px) {
 	.frc-stats-grid  { grid-template-columns: 1fr 1fr; }
