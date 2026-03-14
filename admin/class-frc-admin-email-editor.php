@@ -434,7 +434,7 @@ class FRC_Admin_Email_Editor {
 						<p><em><?php esc_html_e( '[Cart items listed here]', 'flexi-revive-cart' ); ?></em></p>
 						<p><strong><?php esc_html_e( 'Total: {cart_total}', 'flexi-revive-cart' ); ?></strong></p>
 						<p>&#9200; <strong><?php esc_html_e( 'Your cart expires in: {cart_expiry}', 'flexi-revive-cart' ); ?></strong></p>
-						<p>&#9888;&#65039; <?php esc_html_e( '{low_stock_alert}', 'flexi-revive-cart' ); ?></p>
+						<p>&#9888; <?php esc_html_e( '{low_stock_alert}', 'flexi-revive-cart' ); ?></p>
 						<p><span style="background:#7f54b3;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;"><?php esc_html_e( 'Complete Your Purchase Now', 'flexi-revive-cart' ); ?></span></p>
 						<p style="font-size:12px;color:#999;"><?php esc_html_e( "Don't miss out – complete your order before it's too late!", 'flexi-revive-cart' ); ?></p>
 						<?php else : ?>
