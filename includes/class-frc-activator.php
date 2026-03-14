@@ -175,9 +175,8 @@ class FRC_Activator {
 			'frc_auto_delete_days'          => 90,
 			'frc_enable_email_reminders'    => '1',
 			'frc_num_reminders'             => 3,
-			'frc_reminder_intervals'        => array( 1, 6, 24 ),
-			'frc_reminder_types'            => array( 'friendly', 'urgency', 'incentive' ),
-			'frc_reminder_enabled'          => array( 1, 1, 1 ),
+			'frc_reminder_interval'         => 1,
+			'frc_reminder_type'             => 'friendly',
 			'frc_from_name'                 => get_bloginfo( 'name' ),
 			'frc_from_email'                => get_option( 'admin_email' ),
 			'frc_email_subjects'            => array(

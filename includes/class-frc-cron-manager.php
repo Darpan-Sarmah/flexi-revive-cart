@@ -56,7 +56,7 @@ class FRC_Cron_Manager {
 		global $wpdb;
 
 		$timeout   = (int) get_option( 'frc_abandonment_timeout', 60 );
-		$intervals = get_option( 'frc_reminder_intervals', array( 1, 6, 24 ) );
+		$interval  = (int) get_option( 'frc_reminder_interval', 1 );
 
 		// Fetch abandoned carts not yet expired or recovered, in batches of 20.
 		$carts = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -79,7 +79,7 @@ class FRC_Cron_Manager {
 		$email_manager = new FRC_Email_Manager();
 
 		foreach ( $carts as $cart ) {
-			$stage = $this->get_due_stage( $cart, $intervals );
+			$stage = $this->get_due_stage( $cart, $interval );
 			if ( $stage ) {
 				// Fire hook before processing (wrapped in try-catch for third-party safety).
 				try {
@@ -98,9 +98,9 @@ class FRC_Cron_Manager {
 				$this->dispatch_reminder( $cart, $stage, $email_manager );
 			}
 
-			// Expire carts after the last reminder interval + 24h buffer.
-			$last_interval = end( $intervals );
-			$expire_after  = ( (int) $last_interval + 24 ) * HOUR_IN_SECONDS;
+			// Expire carts after the last reminder + 24h buffer.
+			$max_reminders_count = FRC_PRO_ACTIVE ? (int) get_option( 'frc_num_reminders', 3 ) : min( (int) get_option( 'frc_num_reminders', 3 ), 3 );
+			$expire_after        = ( $interval * $max_reminders_count + 24 ) * HOUR_IN_SECONDS;
 			if ( ( time() - strtotime( $cart->abandoned_at ) ) > $expire_after ) {
 				$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 					$wpdb->prefix . 'frc_abandoned_carts',
@@ -116,21 +116,20 @@ class FRC_Cron_Manager {
 	/**
 	 * Determine which reminder stage is due for a cart, if any.
 	 *
-	 * @param object $cart      Cart row.
-	 * @param array  $intervals Interval array (hours per stage).
+	 * @param object $cart     Cart row.
+	 * @param int    $interval Interval in hours between each reminder.
 	 * @return int|false Stage number or false.
 	 */
-	private function get_due_stage( $cart, $intervals ) {
+	private function get_due_stage( $cart, $interval ) {
 		$emails_sent   = (int) $cart->emails_sent;
 		$next_stage    = $emails_sent + 1;
 		$max_reminders = FRC_PRO_ACTIVE ? (int) get_option( 'frc_num_reminders', 3 ) : min( (int) get_option( 'frc_num_reminders', 3 ), 3 );
 
-		if ( $next_stage > $max_reminders || $next_stage > count( $intervals ) ) {
+		if ( $next_stage > $max_reminders ) {
 			return false;
 		}
 
-		$interval_hours = isset( $intervals[ $emails_sent ] ) ? (int) $intervals[ $emails_sent ] : 1;
-		$due_after      = strtotime( $cart->abandoned_at ) + ( $interval_hours * HOUR_IN_SECONDS );
+		$due_after = strtotime( $cart->abandoned_at ) + ( $interval * $next_stage * HOUR_IN_SECONDS );
 
 		if ( time() >= $due_after ) {
 			return $next_stage;
