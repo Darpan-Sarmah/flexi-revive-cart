@@ -18,6 +18,10 @@ class FRC_Email_Manager {
 	/**
 	 * Send a reminder email for a given cart at a given stage.
 	 *
+	 * In the Free version only stage 1 (Friendly Reminder) emails are sent.
+	 * Stages 2 (Urgency) and 3 (Incentive/Discount) are Pro-only and will
+	 * auto-fallback to stage 1 if accessed without a Pro license.
+	 *
 	 * @param object $cart  Database cart row.
 	 * @param int    $stage Email stage (1, 2, or 3).
 	 * @return bool True on success.
@@ -37,34 +41,34 @@ class FRC_Email_Manager {
 			return false;
 		}
 
-		// In Free version, cap at 1 reminder.
-		if ( ! FRC_PRO_ACTIVE && $cart->emails_sent >= 1 ) {
-			return false;
+		// In Free version, cap at 1 reminder and force stage to 1.
+		if ( ! FRC_PRO_ACTIVE ) {
+			if ( $cart->emails_sent >= 1 ) {
+				return false;
+			}
+			// Auto-fallback: Only friendly reminders are allowed in Free.
+			$stage = 1;
 		}
 
 		$template_id = 'reminder-' . $stage;
-		$subjects    = get_option( 'frc_email_subjects', array(
-			__( "You left something behind!", 'flexi-revive-cart' ),
-			__( "Your cart is waiting – items may sell out!", 'flexi-revive-cart' ),
-			__( "Here's a special offer to complete your purchase!", 'flexi-revive-cart' ),
-		) );
 
-		$subject_index = $stage - 1;
-		$subject       = isset( $subjects[ $subject_index ] ) ? $subjects[ $subject_index ] : $subjects[0];
-
-		// Generate discount code for stage 3 (Pro).
+		// Generate discount code for stage 3 (Pro only).
 		$discount_code   = '';
 		$discount_pct    = 0;
 		$discount_amount = '';
 		if ( FRC_PRO_ACTIVE && 3 === $stage && get_option( 'frc_enable_auto_discounts', '0' ) ) {
+			// Validate coupon settings before sending incentive emails.
 			$discount_pct  = (float) get_option( 'frc_discount_percentage', 10 );
 			$discount_type = get_option( 'frc_discount_type', 'percent' );
-			$discount_code = $this->get_or_create_discount( $cart, $discount_pct );
-			// Format the human-readable discount amount for email templates.
-			if ( 'fixed_cart' === $discount_type ) {
-				$discount_amount = FRC_Helpers::format_currency( $discount_pct, get_woocommerce_currency() );
-			} else {
-				$discount_amount = $discount_pct . '%';
+
+			if ( $discount_pct > 0 ) {
+				$discount_code = $this->get_or_create_discount( $cart, $discount_pct );
+				// Format the human-readable discount amount for email templates.
+				if ( 'fixed_cart' === $discount_type ) {
+					$discount_amount = FRC_Helpers::format_currency( $discount_pct, get_woocommerce_currency() );
+				} else {
+					$discount_amount = $discount_pct . '%';
+				}
 			}
 		}
 
@@ -78,6 +82,18 @@ class FRC_Email_Manager {
 		$body = FRC_Email_Templates::render( $template_id, $vars, $lang );
 		if ( empty( $body ) ) {
 			return false;
+		}
+
+		// Get subject from the unified per-template, per-language storage with placeholder support.
+		$subject = FRC_Email_Templates::get_subject( $template_id, $lang, $vars );
+
+		// Fallback to legacy subjects if the new subject is empty.
+		if ( empty( $subject ) ) {
+			$legacy_subjects = get_option( 'frc_email_subjects', FRC_Email_Templates::get_legacy_default_subjects() );
+			$subject_index   = $stage - 1;
+			$subject         = isset( $legacy_subjects[ $subject_index ] ) ? $legacy_subjects[ $subject_index ] : $legacy_subjects[0];
+			// Apply placeholder replacement to legacy subjects too.
+			$subject = FRC_Email_Templates::replace_vars( $subject, $vars );
 		}
 
 		// Apply A/B test subject if Pro.

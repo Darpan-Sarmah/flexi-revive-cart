@@ -277,11 +277,6 @@ class FRC_Admin_Settings {
 
 	/** Render Email Settings tab. */
 	private function render_email_settings() {
-		$subjects  = get_option( 'frc_email_subjects', array(
-			__( 'You left something behind!', 'flexi-revive-cart' ),
-			__( 'Your cart is waiting – items may sell out!', 'flexi-revive-cart' ),
-			__( 'Here\'s a special offer to complete your purchase!', 'flexi-revive-cart' ),
-		) );
 		$intervals = get_option( 'frc_reminder_intervals', array( 1, 6, 24 ) );
 		?>
 		<table class="form-table">
@@ -294,7 +289,7 @@ class FRC_Admin_Settings {
 				<td>
 					<input type="number" name="frc_num_reminders" value="<?php echo esc_attr( get_option( 'frc_num_reminders', 3 ) ); ?>" min="1" max="<?php echo FRC_PRO_ACTIVE ? 10 : 1; ?>" class="small-text" />
 					<?php if ( ! FRC_PRO_ACTIVE ) : ?>
-					<p class="description"><?php esc_html_e( 'Free version is limited to 1 reminder. Upgrade to Pro for unlimited reminders.', 'flexi-revive-cart' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Free version is limited to 1 friendly reminder. Upgrade to Pro for urgency/incentive emails and unlimited reminders.', 'flexi-revive-cart' ); ?></p>
 					<?php endif; ?>
 				</td>
 			</tr>
@@ -306,13 +301,21 @@ class FRC_Admin_Settings {
 				<th><?php esc_html_e( 'From Email', 'flexi-revive-cart' ); ?></th>
 				<td><input type="email" name="frc_from_email" value="<?php echo esc_attr( get_option( 'frc_from_email', get_option( 'admin_email' ) ) ); ?>" class="regular-text" /></td>
 			</tr>
-			<?php for ( $i = 1; $i <= 3; $i++ ) : ?>
 			<tr>
-				<th><?php echo esc_html( sprintf( __( 'Reminder %d – Subject', 'flexi-revive-cart' ), $i ) ); ?></th>
+				<th><?php esc_html_e( 'Email Subjects', 'flexi-revive-cart' ); ?></th>
 				<td>
-					<input type="text" name="frc_email_subjects[<?php echo esc_attr( $i - 1 ); ?>]" value="<?php echo esc_attr( isset( $subjects[ $i - 1 ] ) ? $subjects[ $i - 1 ] : '' ); ?>" class="large-text" />
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %s: link to email templates page */
+							esc_html__( 'Email subjects are now managed in the %s along with template bodies for multi-language support.', 'flexi-revive-cart' ),
+							'<a href="' . esc_url( admin_url( 'admin.php?page=frc-email-editor' ) ) . '">' . esc_html__( 'Email Templates page', 'flexi-revive-cart' ) . '</a>'
+						);
+						?>
+					</p>
 				</td>
 			</tr>
+			<?php for ( $i = 1; $i <= 3; $i++ ) : ?>
 			<tr>
 				<th><?php echo esc_html( sprintf( __( 'Reminder %d – Send After (hours)', 'flexi-revive-cart' ), $i ) ); ?></th>
 				<td><input type="number" name="frc_reminder_intervals[<?php echo esc_attr( $i - 1 ); ?>]" value="<?php echo esc_attr( isset( $intervals[ $i - 1 ] ) ? $intervals[ $i - 1 ] : 1 ); ?>" min="1" class="small-text" /></td>
@@ -324,9 +327,15 @@ class FRC_Admin_Settings {
 					<input type="email" id="frc-test-email-to" placeholder="<?php esc_attr_e( 'Email address', 'flexi-revive-cart' ); ?>" class="regular-text" value="<?php echo esc_attr( get_option( 'admin_email' ) ); ?>" />
 					<select id="frc-test-email-stage">
 						<option value="1"><?php esc_html_e( 'Stage 1 – Friendly', 'flexi-revive-cart' ); ?></option>
+						<?php if ( FRC_PRO_ACTIVE ) : ?>
 						<option value="2"><?php esc_html_e( 'Stage 2 – Urgency', 'flexi-revive-cart' ); ?></option>
 						<option value="3"><?php esc_html_e( 'Stage 3 – Incentive', 'flexi-revive-cart' ); ?></option>
+						<?php endif; ?>
 					</select>
+					<?php if ( ! FRC_PRO_ACTIVE ) : ?>
+					<span class="description" style="color:#d63638;"><?php esc_html_e( 'Free version: only friendly reminder test emails are available.', 'flexi-revive-cart' ); ?></span>
+					<?php endif; ?>
+					<br style="margin-bottom:6px;" />
 					<button type="button" id="frc-send-test-email" class="button"><?php esc_html_e( 'Send Test', 'flexi-revive-cart' ); ?></button>
 					<span id="frc-test-email-result"></span>
 				</td>

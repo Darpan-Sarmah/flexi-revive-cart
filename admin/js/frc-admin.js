@@ -12,6 +12,12 @@
 		var stage   = $( '#frc-test-email-stage' ).val();
 		var $result = $( '#frc-test-email-result' );
 
+		// Free version: block stages 2 & 3 on the client side as well.
+		if ( ! frcAdmin.proActive && parseInt( stage, 10 ) > 1 ) {
+			$result.css( 'color', '#d63638' ).text( 'Urgency and incentive test emails require a Pro license.' );
+			return;
+		}
+
 		$btn.prop( 'disabled', true ).text( frcAdmin.i18n.testEmailSent );
 
 		$.post(
@@ -26,7 +32,7 @@
 				if ( response.success ) {
 					$result.css( 'color', '#00a32a' ).text( response.data.message );
 				} else {
-					$result.css( 'color', '#d63638' ).text( frcAdmin.i18n.error );
+					$result.css( 'color', '#d63638' ).text( response.data && response.data.message ? response.data.message : frcAdmin.i18n.error );
 				}
 			}
 		).always( function () {
@@ -90,7 +96,20 @@
 
 	// ── Email editor: insert variable ──────────────────────────────────────────
 	$( document ).on( 'click', '.frc-insert-var', function () {
-		var varText = $( this ).data( 'var' );
+		var varText    = $( this ).data( 'var' );
+		var $subjectEl = $( '#frc_template_subject' );
+
+		// If subject field is focused, insert into subject instead of body.
+		if ( $subjectEl.length && $subjectEl.is( ':focus' ) ) {
+			var subjectField = $subjectEl[ 0 ];
+			var startPos     = subjectField.selectionStart;
+			var endPos       = subjectField.selectionEnd;
+			var currentVal   = $subjectEl.val();
+			$subjectEl.val( currentVal.substring( 0, startPos ) + varText + currentVal.substring( endPos ) );
+			subjectField.selectionStart = subjectField.selectionEnd = startPos + varText.length;
+			return;
+		}
+
 		if ( typeof window.tinyMCE !== 'undefined' && window.tinyMCE.activeEditor ) {
 			window.tinyMCE.activeEditor.execCommand( 'mceInsertContent', false, varText );
 		} else {
