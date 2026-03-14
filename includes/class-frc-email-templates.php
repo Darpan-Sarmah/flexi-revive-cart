@@ -392,4 +392,17 @@ class FRC_Email_Templates {
 
 		return '';
 	}
+
+	/**
+	 * Return the legacy default email subjects array (used as fallback for backward compatibility).
+	 *
+	 * @return array Indexed array of default subject strings.
+	 */
+	public static function get_legacy_default_subjects() {
+		return array(
+			__( 'You left something behind!', 'flexi-revive-cart' ),
+			__( 'Your cart is waiting – items may sell out!', 'flexi-revive-cart' ),
+			__( "Here's a special offer to complete your purchase!", 'flexi-revive-cart' ),
+		);
+	}
 }

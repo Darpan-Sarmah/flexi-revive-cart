@@ -89,13 +89,9 @@ class FRC_Email_Manager {
 
 		// Fallback to legacy subjects if the new subject is empty.
 		if ( empty( $subject ) ) {
-			$legacy_subjects = get_option( 'frc_email_subjects', array(
-				__( 'You left something behind!', 'flexi-revive-cart' ),
-				__( 'Your cart is waiting – items may sell out!', 'flexi-revive-cart' ),
-				__( "Here's a special offer to complete your purchase!", 'flexi-revive-cart' ),
-			) );
-			$subject_index = $stage - 1;
-			$subject       = isset( $legacy_subjects[ $subject_index ] ) ? $legacy_subjects[ $subject_index ] : $legacy_subjects[0];
+			$legacy_subjects = get_option( 'frc_email_subjects', FRC_Email_Templates::get_legacy_default_subjects() );
+			$subject_index   = $stage - 1;
+			$subject         = isset( $legacy_subjects[ $subject_index ] ) ? $legacy_subjects[ $subject_index ] : $legacy_subjects[0];
 			// Apply placeholder replacement to legacy subjects too.
 			$subject = FRC_Email_Templates::replace_vars( $subject, $vars );
 		}

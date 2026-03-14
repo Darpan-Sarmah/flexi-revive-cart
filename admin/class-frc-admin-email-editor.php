@@ -114,7 +114,7 @@ class FRC_Admin_Email_Editor {
 			<div class="notice notice-warning inline" style="margin-top:10px;">
 				<p>
 					<?php esc_html_e( 'Urgency and Incentive/Discount templates require a Pro license. Upgrade to Pro to edit all templates, send urgency/discount emails, and use coupon features.', 'flexi-revive-cart' ); ?>
-					<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank"><strong><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></strong></a>
+					<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" rel="noopener noreferrer"><strong><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></strong></a>
 				</p>
 			</div>
 			<?php endif; ?>
@@ -230,7 +230,7 @@ class FRC_Admin_Email_Editor {
 							<div class="postbox-header"><h2 class="hndle"><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></h2></div>
 							<div class="inside">
 								<p style="font-size:12px;"><?php esc_html_e( 'Pro unlocks urgency/incentive templates, A/B testing, conditional logic, SMS/WhatsApp messages, coupon features, and advanced analytics.', 'flexi-revive-cart' ); ?></p>
-								<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" class="button button-primary"><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></a>
+								<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" rel="noopener noreferrer" class="button button-primary"><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></a>
 							</div>
 						</div>
 						<?php endif; ?>
