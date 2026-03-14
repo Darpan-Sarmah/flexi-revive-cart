@@ -81,6 +81,20 @@ class FRC_Cron_Manager {
 		foreach ( $carts as $cart ) {
 			$stage = $this->get_due_stage( $cart, $intervals );
 			if ( $stage ) {
+				// Fire hook before processing (wrapped in try-catch for third-party safety).
+				try {
+					/**
+					 * Fires after a cart is identified as abandoned and is about to receive a reminder.
+					 *
+					 * @param int $cart_id Cart ID.
+					 * @param int $user_id User ID (0 for guests).
+					 */
+					do_action( 'frc_after_cart_tracked', (int) $cart->id, (int) $cart->user_id );
+				} catch ( \Exception $e ) {
+					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+					error_log( 'FRC Hook Error (frc_after_cart_tracked): ' . $e->getMessage() );
+				}
+
 				$this->dispatch_reminder( $cart, $stage, $email_manager );
 			}
 

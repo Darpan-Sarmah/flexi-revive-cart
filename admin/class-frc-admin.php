@@ -311,6 +311,16 @@ class FRC_Admin {
 
 		$to      = isset( $_POST['to'] ) ? sanitize_email( wp_unslash( $_POST['to'] ) ) : get_option( 'admin_email' );
 		$stage   = isset( $_POST['stage'] ) ? absint( wp_unslash( $_POST['stage'] ) ) : 1;
+		$lang    = isset( $_POST['lang'] ) ? sanitize_key( wp_unslash( $_POST['lang'] ) ) : '';
+
+		// Determine language for test email: POST param > admin preview > default.
+		if ( empty( $lang ) ) {
+			$lang = get_option( 'frc_admin_preview_language', '' );
+		}
+		if ( empty( $lang ) ) {
+			$lang = get_option( 'frc_default_language', 'en' );
+		}
+		$lang = FRC_Email_Templates::validate_lang( $lang );
 
 		// Free version: force stage to 1 (only friendly reminder test emails allowed).
 		if ( ! FRC_PRO_ACTIVE && $stage > 1 ) {
@@ -335,10 +345,10 @@ class FRC_Admin {
 
 		$template_id = 'reminder-' . $stage;
 		$vars        = FRC_Email_Templates::build_vars( $mock );
-		$body        = FRC_Email_Templates::render( $template_id, $vars );
+		$body        = FRC_Email_Templates::render( $template_id, $vars, $lang );
 
 		// Get subject from the unified template subject storage (with placeholder replacement).
-		$subject = FRC_Email_Templates::get_subject( $template_id, 'en', $vars );
+		$subject = FRC_Email_Templates::get_subject( $template_id, $lang, $vars );
 		if ( empty( $subject ) ) {
 			$subject = __( '[Test] Cart Recovery Email', 'flexi-revive-cart' );
 		} else {
