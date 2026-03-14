@@ -154,7 +154,7 @@ class FRC_Public {
 			<label for="frc-frontend-lang" style="font-size:14px;">
 				<?php esc_html_e( 'Select Language', 'flexi-revive-cart' ); ?>:
 			</label>
-			<select id="frc-frontend-lang" style="font-size:14px;">
+			<select id="frc-frontend-lang" style="font-size:14px;" onchange="if(this.value){var u=new URL(window.location.href);u.searchParams.set('frc_lang',this.value);window.location.href=u.toString();}">
 				<?php foreach ( $languages as $code => $label ) :
 					$flag = isset( $flags[ $code ] ) ? $flags[ $code ] . ' ' : '';
 				?>
@@ -163,14 +163,6 @@ class FRC_Public {
 				</option>
 				<?php endforeach; ?>
 			</select>
-			<script>
-			document.getElementById('frc-frontend-lang').addEventListener('change', function() {
-				var lang = this.value;
-				var url = new URL(window.location.href);
-				url.searchParams.set('frc_lang', lang);
-				window.location.href = url.toString();
-			});
-			</script>
 		</div>
 		<?php
 	}
@@ -189,7 +181,18 @@ class FRC_Public {
 			$lang = FRC_Email_Templates::validate_lang( $lang );
 			// Store in cookie for persistence.
 			if ( ! headers_sent() ) {
-				setcookie( 'frc_language', $lang, time() + ( 30 * DAY_IN_SECONDS ), COOKIEPATH, COOKIE_DOMAIN, is_ssl(), true );
+				setcookie(
+					'frc_language',
+					$lang,
+					array(
+						'expires'  => time() + ( 30 * DAY_IN_SECONDS ),
+						'path'     => COOKIEPATH,
+						'domain'   => COOKIE_DOMAIN,
+						'secure'   => is_ssl(),
+						'httponly' => true,
+						'samesite' => 'Lax',
+					)
+				);
 			}
 			return $lang;
 		}
@@ -215,7 +218,9 @@ class FRC_Public {
 	 * AJAX handler to set the frontend language.
 	 */
 	public function ajax_set_language() {
-		$lang = isset( $_POST['lang'] ) ? sanitize_key( wp_unslash( $_POST['lang'] ) ) : 'en'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		check_ajax_referer( 'frc_track_cart_nonce', 'nonce' );
+
+		$lang = isset( $_POST['lang'] ) ? sanitize_key( wp_unslash( $_POST['lang'] ) ) : 'en';
 		$lang = FRC_Email_Templates::validate_lang( $lang );
 
 		if ( is_user_logged_in() ) {

@@ -206,11 +206,11 @@ class FRC_Admin_Settings {
 					'general'    => __( 'General', 'flexi-revive-cart' ),
 					'language'   => __( 'Language', 'flexi-revive-cart' ),
 					'email'      => __( 'Email', 'flexi-revive-cart' ),
-					'discount'   => __( 'Discounts' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
-					'sms'        => __( 'SMS' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
-					'whatsapp'   => __( 'WhatsApp' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
-					'push'       => __( 'Push' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
-					'popup'      => __( 'Popups' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
+					'discount'   => FRC_PRO_ACTIVE ? __( 'Discounts', 'flexi-revive-cart' ) : __( 'Discounts (Pro)', 'flexi-revive-cart' ),
+					'sms'        => FRC_PRO_ACTIVE ? __( 'SMS', 'flexi-revive-cart' ) : __( 'SMS (Pro)', 'flexi-revive-cart' ),
+					'whatsapp'   => FRC_PRO_ACTIVE ? __( 'WhatsApp', 'flexi-revive-cart' ) : __( 'WhatsApp (Pro)', 'flexi-revive-cart' ),
+					'push'       => FRC_PRO_ACTIVE ? __( 'Push', 'flexi-revive-cart' ) : __( 'Push (Pro)', 'flexi-revive-cart' ),
+					'popup'      => FRC_PRO_ACTIVE ? __( 'Popups', 'flexi-revive-cart' ) : __( 'Popups (Pro)', 'flexi-revive-cart' ),
 					'compliance' => __( 'Compliance', 'flexi-revive-cart' ),
 				);
 				foreach ( $tabs as $tab_id => $tab_label ) {
@@ -411,7 +411,13 @@ class FRC_Admin_Settings {
 			$display_count     = min( $display_count, $max_reminders );
 
 			for ( $i = 1; $i <= $display_count; $i++ ) :
-				$interval_val = isset( $intervals[ $i - 1 ] ) ? $intervals[ $i - 1 ] : ( isset( $default_intervals[ $i - 1 ] ) ? $default_intervals[ $i - 1 ] : ( $i * 24 ) );
+				if ( isset( $intervals[ $i - 1 ] ) ) {
+					$interval_val = $intervals[ $i - 1 ];
+				} elseif ( isset( $default_intervals[ $i - 1 ] ) ) {
+					$interval_val = $default_intervals[ $i - 1 ];
+				} else {
+					$interval_val = $i * 24;
+				}
 				$stage_label  = '';
 				if ( 1 === $i ) {
 					$stage_label = __( '(Friendly Reminder)', 'flexi-revive-cart' );
