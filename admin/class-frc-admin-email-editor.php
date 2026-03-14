@@ -125,9 +125,9 @@ class FRC_Admin_Email_Editor {
 				<div class="frc-editor-row" style="display:flex;gap:20px;margin-top:20px;">
 					<div class="frc-editor-main" style="flex:1;">
 
-						<!-- Language Selector -->
+						<!-- Template Language Selector (for editing/previewing only) -->
 						<div style="margin-bottom:16px;">
-							<label for="frc-lang-switcher"><strong><?php esc_html_e( 'Language:', 'flexi-revive-cart' ); ?></strong></label>
+							<label for="frc-lang-switcher"><strong><?php esc_html_e( 'Template Language (Editing Only):', 'flexi-revive-cart' ); ?></strong></label>
 							<select id="frc-lang-switcher">
 								<?php foreach ( $languages as $code => $label ) : ?>
 								<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $code, $active_lang ); ?>>
@@ -135,6 +135,7 @@ class FRC_Admin_Email_Editor {
 								</option>
 								<?php endforeach; ?>
 							</select>
+							<p class="description" style="display:inline;margin-left:8px;"><?php esc_html_e( 'This switcher is for editing/previewing templates only. It does not affect the language of sent emails or admin interface.', 'flexi-revive-cart' ); ?></p>
 							<script>
 							document.getElementById('frc-lang-switcher').addEventListener('change', function() {
 								var url = new URL(window.location.href);

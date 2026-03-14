@@ -123,7 +123,7 @@ class FRC_Cron_Manager {
 	private function get_due_stage( $cart, $intervals ) {
 		$emails_sent   = (int) $cart->emails_sent;
 		$next_stage    = $emails_sent + 1;
-		$max_reminders = FRC_PRO_ACTIVE ? (int) get_option( 'frc_num_reminders', 3 ) : 1;
+		$max_reminders = FRC_PRO_ACTIVE ? (int) get_option( 'frc_num_reminders', 3 ) : min( (int) get_option( 'frc_num_reminders', 3 ), 3 );
 
 		if ( $next_stage > $max_reminders || $next_stage > count( $intervals ) ) {
 			return false;

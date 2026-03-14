@@ -46,6 +46,21 @@ class FRC_Email_Templates {
 	}
 
 	/**
+	 * Map a reminder type string to a template ID.
+	 *
+	 * @param string $type Reminder type: 'friendly', 'urgency', or 'incentive'.
+	 * @return string Template ID (e.g. 'reminder-1').
+	 */
+	public static function get_template_id_for_type( $type ) {
+		$map = array(
+			'friendly'  => 'reminder-1',
+			'urgency'   => 'reminder-2',
+			'incentive' => 'reminder-3',
+		);
+		return isset( $map[ $type ] ) ? $map[ $type ] : 'reminder-1';
+	}
+
+	/**
 	 * Render a template by replacing placeholder variables.
 	 *
 	 * Checks for a saved custom template (per language) before falling back
