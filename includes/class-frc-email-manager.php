@@ -84,8 +84,14 @@ class FRC_Email_Manager {
 			return false;
 		}
 
+		// Validate placeholders based on template type.
+		$body = FRC_Email_Templates::validate_placeholders( $body, $template_id );
+
 		// Get subject from the unified per-template, per-language storage with placeholder support.
 		$subject = FRC_Email_Templates::get_subject( $template_id, $lang, $vars );
+
+		// Validate placeholders in subject too.
+		$subject = FRC_Email_Templates::validate_placeholders( $subject, $template_id );
 
 		// Fallback to legacy subjects if the new subject is empty.
 		if ( empty( $subject ) ) {
@@ -166,6 +172,21 @@ class FRC_Email_Manager {
 			array( '%d', '%s', '%s' ),
 			array( '%d' )
 		);
+
+		// Fire hook after cart reminder is sent (wrapped in try-catch for third-party safety).
+		try {
+			/**
+			 * Fires after a cart reminder email is successfully sent.
+			 *
+			 * @param int    $cart_id Cart ID.
+			 * @param int    $stage   Reminder stage (1, 2, or 3).
+			 * @param string $lang    Language code used.
+			 */
+			do_action( 'frc_after_reminder_sent', (int) $cart->id, $stage, $lang );
+		} catch ( \Exception $e ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( 'FRC Hook Error (frc_after_reminder_sent): ' . $e->getMessage() );
+		}
 
 		return true;
 	}
