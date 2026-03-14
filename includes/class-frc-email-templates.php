@@ -679,9 +679,11 @@ class FRC_Email_Templates {
 			}
 		}
 
-		// In Free version, always strip all Pro-only placeholders regardless of template.
-		if ( ! FRC_PRO_ACTIVE ) {
-			foreach ( self::get_pro_only_placeholders() as $placeholder ) {
+		// Strip Pro-only placeholders when the Pro add-on is not active.
+		/** This filter is documented in class-frc-admin-email-editor.php */
+		$pro_placeholders = apply_filters( 'frc_pro_only_placeholders', self::get_pro_only_placeholders() );
+		if ( ! empty( $pro_placeholders ) ) {
+			foreach ( $pro_placeholders as $placeholder ) {
 				$content = str_replace( '{' . $placeholder . '}', '', $content );
 			}
 		}
