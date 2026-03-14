@@ -443,9 +443,6 @@ class FRC_Admin_Settings {
 					<input type="number" name="frc_abandonment_timeout" value="<?php echo esc_attr( get_option( 'frc_abandonment_timeout', 60 ) ); ?>" min="1" class="small-text" />
 					<?php $this->render_time_unit_select( 'frc_abandonment_timeout_unit', get_option( 'frc_abandonment_timeout_unit', 'minutes' ) ); ?>
 					<p class="description"><?php esc_html_e( 'Time after which an inactive cart is considered abandoned.', 'flexi-revive-cart' ); ?></p>
-					<?php if ( ! FRC_PRO_ACTIVE ) : ?>
-					<p class="description" style="color:#d63638;"><?php esc_html_e( 'Free version: weeks, months, and years require Pro.', 'flexi-revive-cart' ); ?></p>
-					<?php endif; ?>
 				</td>
 			</tr>
 			<tr>
@@ -540,20 +537,6 @@ class FRC_Admin_Settings {
 			<tr>
 				<th><?php esc_html_e( 'From Email', 'flexi-revive-cart' ); ?></th>
 				<td><input type="email" name="frc_from_email" value="<?php echo esc_attr( get_option( 'frc_from_email', get_option( 'admin_email' ) ) ); ?>" class="regular-text" /></td>
-			</tr>
-			<tr>
-				<th><?php esc_html_e( 'Email Subjects', 'flexi-revive-cart' ); ?></th>
-				<td>
-					<p class="description">
-						<?php
-						printf(
-							/* translators: %s: link to email templates page */
-							esc_html__( 'Email subjects are now managed in the %s along with template bodies for multi-language support.', 'flexi-revive-cart' ),
-							'<a href="' . esc_url( admin_url( 'admin.php?page=frc-email-editor' ) ) . '">' . esc_html__( 'Email Templates page', 'flexi-revive-cart' ) . '</a>'
-						);
-						?>
-					</p>
-				</td>
 			</tr>
 		</table>
 
