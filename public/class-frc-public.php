@@ -210,8 +210,8 @@ class FRC_Public {
 			}
 		}
 
-		// Default language.
-		return FRC_Email_Templates::validate_lang( get_option( 'frc_default_language', 'en' ) );
+		// Default to frontend language setting.
+		return FRC_Email_Templates::validate_lang( get_option( 'frc_frontend_language', get_option( 'frc_default_language', 'en' ) ) );
 	}
 
 	/**

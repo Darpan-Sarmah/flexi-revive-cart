@@ -176,6 +176,8 @@ class FRC_Activator {
 			'frc_enable_email_reminders'    => '1',
 			'frc_num_reminders'             => 3,
 			'frc_reminder_intervals'        => array( 1, 6, 24 ),
+			'frc_reminder_types'            => array( 'friendly', 'urgency', 'incentive' ),
+			'frc_reminder_enabled'          => array( 1, 1, 1 ),
 			'frc_from_name'                 => get_bloginfo( 'name' ),
 			'frc_from_email'                => get_option( 'admin_email' ),
 			'frc_email_subjects'            => array(
@@ -183,6 +185,8 @@ class FRC_Activator {
 				__( "Your cart is waiting – items may sell out!", 'flexi-revive-cart' ),
 				__( "Here's a special offer to complete your purchase!", 'flexi-revive-cart' ),
 			),
+			'frc_backend_language'          => 'en',
+			'frc_frontend_language'         => 'en',
 			'frc_enable_sms'                => '0',
 			'frc_sms_provider'              => 'twilio',
 			'frc_enable_push'               => '0',

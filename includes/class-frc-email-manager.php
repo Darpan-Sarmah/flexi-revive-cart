@@ -18,12 +18,11 @@ class FRC_Email_Manager {
 	/**
 	 * Send a reminder email for a given cart at a given stage.
 	 *
-	 * In the Free version only stage 1 (Friendly Reminder) emails are sent.
-	 * Stages 2 (Urgency) and 3 (Incentive/Discount) are Pro-only and will
-	 * auto-fallback to stage 1 if accessed without a Pro license.
+	 * In the Free version only friendly reminder emails are sent (up to 3).
+	 * In Pro, reminder type is configurable per stage (friendly, urgency, incentive).
 	 *
 	 * @param object $cart  Database cart row.
-	 * @param int    $stage Email stage (1, 2, or 3).
+	 * @param int    $stage Email stage (1, 2, 3, ...).
 	 * @return bool True on success.
 	 */
 	public function send_reminder( $cart, $stage ) {
@@ -35,28 +34,48 @@ class FRC_Email_Manager {
 			return false;
 		}
 
-		// Max 3 reminder emails per cart.
+		// Max reminder emails per cart.
 		$max_emails = get_option( 'frc_num_reminders', 3 );
 		if ( $cart->emails_sent >= $max_emails ) {
 			return false;
 		}
 
-		// In Free version, cap at 1 reminder and force stage to 1.
-		if ( ! FRC_PRO_ACTIVE ) {
-			if ( $cart->emails_sent >= 1 ) {
-				return false;
-			}
-			// Auto-fallback: Only friendly reminders are allowed in Free.
-			$stage = 1;
+		// Check if this reminder position is enabled.
+		$reminder_enabled = get_option( 'frc_reminder_enabled', array( 1, 1, 1 ) );
+		$position         = $stage - 1;
+		if ( isset( $reminder_enabled[ $position ] ) && ! (int) $reminder_enabled[ $position ] ) {
+			return false;
 		}
 
-		$template_id = 'reminder-' . $stage;
+		// In Free version, cap at 3 reminders and force type to friendly.
+		if ( ! FRC_PRO_ACTIVE ) {
+			if ( $cart->emails_sent >= 3 ) {
+				return false;
+			}
+		}
 
-		// Generate discount code for stage 3 (Pro only).
+		// Determine the template to use based on reminder type configuration.
+		$reminder_types = get_option( 'frc_reminder_types', array( 'friendly', 'urgency', 'incentive' ) );
+		$reminder_type  = isset( $reminder_types[ $position ] ) ? $reminder_types[ $position ] : 'friendly';
+
+		// In Free version, force all types to friendly.
+		if ( ! FRC_PRO_ACTIVE ) {
+			$reminder_type = 'friendly';
+		}
+
+		// Map reminder type to template ID.
+		$type_to_template = array(
+			'friendly'  => 'reminder-1',
+			'urgency'   => 'reminder-2',
+			'incentive' => 'reminder-3',
+		);
+		$template_id = isset( $type_to_template[ $reminder_type ] ) ? $type_to_template[ $reminder_type ] : 'reminder-1';
+
+		// Generate discount code for incentive reminders (Pro only).
 		$discount_code   = '';
 		$discount_pct    = 0;
 		$discount_amount = '';
-		if ( FRC_PRO_ACTIVE && 3 === $stage && get_option( 'frc_enable_auto_discounts', '0' ) ) {
+		if ( FRC_PRO_ACTIVE && 'incentive' === $reminder_type && get_option( 'frc_enable_auto_discounts', '0' ) ) {
 			// Validate coupon settings before sending incentive emails.
 			$discount_pct  = (float) get_option( 'frc_discount_percentage', 10 );
 			$discount_type = get_option( 'frc_discount_type', 'percent' );
@@ -76,7 +95,8 @@ class FRC_Email_Manager {
 		$vars = FRC_Email_Templates::build_vars( $cart, 0, $discount_code, $discount_amount );
 
 		// Determine cart language for template selection.
-		$lang = isset( $cart->language ) && $cart->language ? $cart->language : 'en';
+		// Use the cart's stored language if available, otherwise fall back to the backend language setting.
+		$lang = isset( $cart->language ) && $cart->language ? $cart->language : get_option( 'frc_backend_language', get_option( 'frc_default_language', 'en' ) );
 
 		// Render body.
 		$body = FRC_Email_Templates::render( $template_id, $vars, $lang );
