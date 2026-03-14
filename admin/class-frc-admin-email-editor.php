@@ -1,10 +1,10 @@
 <?php
 /**
- * Email template editor (Free & Pro).
+ * Email template editor.
  *
  * Free: Edit only the Friendly Reminder template (reminder-1) subject and body.
- *       Urgency and Incentive templates are hidden with an upgrade notice.
- * Pro:  Edit all 3 templates (friendly, urgency, incentive/discount)
+ *       Additional templates are shown as locked tabs with an upgrade notice.
+ * Pro:  Edit all templates (friendly, urgency, incentive/discount)
  *       with full subject + body editing and multi-language support.
  *
  * Subjects are managed here (unified with template bodies) and support
@@ -153,6 +153,15 @@ class FRC_Admin_Email_Editor {
 				</span>
 				<?php endif; ?>
 				<?php endforeach; ?>
+
+				<?php if ( ! FRC_PRO_ACTIVE ) : ?>
+				<span class="nav-tab" style="color:#999;cursor:default;" title="<?php esc_attr_e( 'Install the Pro add-on for this template', 'flexi-revive-cart' ); ?>">
+					<?php esc_html_e( 'Urgency Reminder', 'flexi-revive-cart' ); ?> 🔒
+				</span>
+				<span class="nav-tab" style="color:#999;cursor:default;" title="<?php esc_attr_e( 'Install the Pro add-on for this template', 'flexi-revive-cart' ); ?>">
+					<?php esc_html_e( 'Incentive / Discount', 'flexi-revive-cart' ); ?> 🔒
+				</span>
+				<?php endif; ?>
 			</nav>
 
 			<?php if ( ! FRC_PRO_ACTIVE ) : ?>

@@ -23,40 +23,45 @@ class FRC_Email_Templates {
 	 * @return array
 	 */
 	public static function get_templates() {
-		return array(
+		$templates = array(
 			'reminder-1' => array(
 				'id'       => 'reminder-1',
 				'name'     => __( 'Friendly Reminder', 'flexi-revive-cart' ),
 				'file'     => 'emails/reminder-1.php',
 				'stage'    => 1,
 			),
-			'reminder-2' => array(
-				'id'       => 'reminder-2',
-				'name'     => __( 'Urgency Reminder', 'flexi-revive-cart' ),
-				'file'     => 'emails/reminder-2.php',
-				'stage'    => 2,
-			),
-			'reminder-3' => array(
-				'id'       => 'reminder-3',
-				'name'     => __( 'Incentive / Discount', 'flexi-revive-cart' ),
-				'file'     => 'emails/reminder-3.php',
-				'stage'    => 3,
-			),
 		);
+
+		/**
+		 * Filters the available email templates.
+		 *
+		 * Pro can add additional templates (e.g. reminder-2, reminder-3).
+		 *
+		 * @param array $templates Associative array of template definitions.
+		 */
+		return apply_filters( 'frc_email_templates', $templates );
 	}
 
 	/**
 	 * Map a reminder type string to a template ID.
 	 *
-	 * @param string $type Reminder type: 'friendly', 'urgency', or 'incentive'.
+	 * @param string $type Reminder type (e.g. 'friendly'). Pro can add more via filter.
 	 * @return string Template ID (e.g. 'reminder-1').
 	 */
 	public static function get_template_id_for_type( $type ) {
 		$map = array(
-			'friendly'  => 'reminder-1',
-			'urgency'   => 'reminder-2',
-			'incentive' => 'reminder-3',
+			'friendly' => 'reminder-1',
 		);
+
+		/**
+		 * Filters the reminder type to template ID map.
+		 *
+		 * Pro can add additional mappings (e.g. 'urgency' => 'reminder-2').
+		 *
+		 * @param array $map Associative array of type => template_id.
+		 */
+		$map = apply_filters( 'frc_template_type_map', $map );
+
 		return isset( $map[ $type ] ) ? $map[ $type ] : 'reminder-1';
 	}
 
@@ -293,30 +298,6 @@ class FRC_Email_Templates {
 				'ar'    => __( 'مرحباً {user_name}، لقد تركت شيئاً في {store_name}!', 'flexi-revive-cart' ),
 				'ja'    => __( '{user_name}様、{store_name}にお忘れ物があります！', 'flexi-revive-cart' ),
 			),
-			'reminder-2' => array(
-				'en'    => __( '{user_name}, your cart at {store_name} is waiting – items may sell out!', 'flexi-revive-cart' ),
-				'es'    => __( '{user_name}, tu carrito en {store_name} te espera – ¡los artículos pueden agotarse!', 'flexi-revive-cart' ),
-				'fr'    => __( '{user_name}, votre panier chez {store_name} vous attend – les articles peuvent s\'épuiser !', 'flexi-revive-cart' ),
-				'de'    => __( '{user_name}, Ihr Warenkorb bei {store_name} wartet – Artikel können ausverkauft sein!', 'flexi-revive-cart' ),
-				'it'    => __( '{user_name}, il tuo carrello su {store_name} ti aspetta – gli articoli potrebbero esaurirsi!', 'flexi-revive-cart' ),
-				'hi'    => __( '{user_name}, {store_name} पर आपकी कार्ट आपका इंतज़ार कर रही है – आइटम बिक सकते हैं!', 'flexi-revive-cart' ),
-				'pt_BR' => __( '{user_name}, seu carrinho na {store_name} está esperando – os itens podem esgotar!', 'flexi-revive-cart' ),
-				'zh_CN' => __( '{user_name}，您在 {store_name} 的购物车还在等您——商品可能会售罄！', 'flexi-revive-cart' ),
-				'ar'    => __( '{user_name}، سلة التسوق في {store_name} بانتظارك – قد تنفد المنتجات!', 'flexi-revive-cart' ),
-				'ja'    => __( '{user_name}様、{store_name}のカートがお待ちです──商品が売り切れる可能性があります！', 'flexi-revive-cart' ),
-			),
-			'reminder-3' => array(
-				'en'    => __( '{user_name}, here\'s {discount_amount} off your cart at {store_name}!', 'flexi-revive-cart' ),
-				'es'    => __( '{user_name}, ¡aquí tienes {discount_amount} de descuento en {store_name}!', 'flexi-revive-cart' ),
-				'fr'    => __( '{user_name}, voici {discount_amount} de réduction chez {store_name} !', 'flexi-revive-cart' ),
-				'de'    => __( '{user_name}, hier sind {discount_amount} Rabatt bei {store_name}!', 'flexi-revive-cart' ),
-				'it'    => __( '{user_name}, ecco {discount_amount} di sconto su {store_name}!', 'flexi-revive-cart' ),
-				'hi'    => __( '{user_name}, {store_name} पर आपकी कार्ट पर {discount_amount} की छूट!', 'flexi-revive-cart' ),
-				'pt_BR' => __( '{user_name}, aproveite {discount_amount} de desconto na {store_name}!', 'flexi-revive-cart' ),
-				'zh_CN' => __( '{user_name}，您在 {store_name} 的购物车可享 {discount_amount} 折扣！', 'flexi-revive-cart' ),
-				'ar'    => __( '{user_name}، احصل على خصم {discount_amount} على سلة التسوق في {store_name}!', 'flexi-revive-cart' ),
-				'ja'    => __( '{user_name}様、{store_name}のカートが {discount_amount} 割引になります！', 'flexi-revive-cart' ),
-			),
 		);
 
 		if ( isset( $defaults[ $template_id ][ $lang ] ) ) {
@@ -416,160 +397,6 @@ class FRC_Email_Templates {
 <p><a href="{recovery_link}" style="background:#7f54b3;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">購入を完了する</a></p>
 <p style="font-size:12px;color:#999;">カートは72時間保存されます。 | <a href="{unsubscribe_link}">配信停止</a></p>',
 			),
-
-			'reminder-2' => array(
-				'en' => '<p>Hi {user_name},</p>
-<p>⚠️ Your cart at {store_name} is still waiting – items may sell out soon! You saved it {abandoned_time}.</p>
-{cart_items}
-<p><strong>Total: {cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Secure My Cart Now</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">Unsubscribe</a></p>',
-
-				'es' => '<p>Hola {user_name},</p>
-<p>⚠️ Tu carrito en {store_name} sigue esperando, ¡los artículos pueden agotarse pronto! Lo guardaste hace {abandoned_time}.</p>
-{cart_items}
-<p><strong>Total: {cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Asegurar Mi Carrito Ahora</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">Cancelar suscripción</a></p>',
-
-				'fr' => '<p>Bonjour {user_name},</p>
-<p>⚠️ Votre panier sur {store_name} vous attend toujours – les articles peuvent se vendre rapidement ! Vous l\'avez sauvegardé il y a {abandoned_time}.</p>
-{cart_items}
-<p><strong>Total : {cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Sécuriser Mon Panier</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">Se désabonner</a></p>',
-
-				'de' => '<p>Hallo {user_name},</p>
-<p>⚠️ Ihr Warenkorb bei {store_name} wartet noch – Artikel können bald ausverkauft sein! Sie haben ihn vor {abandoned_time} gespeichert.</p>
-{cart_items}
-<p><strong>Gesamt: {cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Meinen Warenkorb Sichern</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">Abmelden</a></p>',
-
-				'it' => '<p>Ciao {user_name},</p>
-<p>⚠️ Il tuo carrello su {store_name} ti sta ancora aspettando – gli articoli potrebbero esaurirsi presto! L\'hai salvato {abandoned_time} fa.</p>
-{cart_items}
-<p><strong>Totale: {cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Metti al Sicuro il Carrello</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">Annulla iscrizione</a></p>',
-
-				'hi' => '<p>नमस्ते {user_name},</p>
-<p>⚠️ {store_name} पर आपकी कार्ट अभी भी इंतज़ार कर रही है – आइटम जल्द बिक सकते हैं! आपने इसे {abandoned_time} पहले सेव किया था।</p>
-{cart_items}
-<p><strong>कुल: {cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">अभी कार्ट सुरक्षित करें</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">सदस्यता रद्द करें</a></p>',
-
-				'pt_BR' => '<p>Olá {user_name},</p>
-<p>⚠️ Seu carrinho na {store_name} ainda está esperando – os itens podem esgotar em breve! Você o salvou {abandoned_time} atrás.</p>
-{cart_items}
-<p><strong>Total: {cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Garantir Meu Carrinho</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">Cancelar inscrição</a></p>',
-
-				'zh_CN' => '<p>{user_name}，您好！</p>
-<p>⚠️ 您在 {store_name} 的购物车仍在等待——商品可能很快售罄！您于 {abandoned_time} 前保存了它。</p>
-{cart_items}
-<p><strong>合计：{cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">立即确保购物车</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">取消订阅</a></p>',
-
-				'ar' => '<p>مرحباً {user_name}،</p>
-<p>⚠️ سلة التسوق في {store_name} لا تزال بانتظارك – قد تنفد المنتجات قريباً! قمت بحفظها منذ {abandoned_time}.</p>
-{cart_items}
-<p><strong>المجموع: {cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">احجز سلتي الآن</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">إلغاء الاشتراك</a></p>',
-
-				'ja' => '<p>{user_name}様、こんにちは。</p>
-<p>⚠️ {store_name}のカートがまだお待ちです──商品が間もなく売り切れる可能性があります！{abandoned_time}前に保存されました。</p>
-{cart_items}
-<p><strong>合計：{cart_total}</strong></p>
-<p><a href="{recovery_link}" style="background:#d63638;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">今すぐカートを確保</a></p>
-<p style="font-size:12px;color:#999;"><a href="{unsubscribe_link}">配信停止</a></p>',
-			),
-
-			'reminder-3' => array(
-				'en' => '<p>Hi {user_name},</p>
-<p>🎁 Last chance! We saved a special discount just for you.</p>
-{cart_items}
-<p><strong>Total: {cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">Use code: {discount_code} for {discount_amount} off!</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Claim My Discount</a></p>
-<p style="font-size:12px;color:#999;">Discount code expires in 72 hours. | <a href="{unsubscribe_link}">Unsubscribe</a></p>',
-
-				'es' => '<p>Hola {user_name},</p>
-<p>🎁 ¡Última oportunidad! Guardamos un descuento especial solo para ti.</p>
-{cart_items}
-<p><strong>Total: {cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">Usa el código: {discount_code} para {discount_amount} de descuento!</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Reclamar Mi Descuento</a></p>
-<p style="font-size:12px;color:#999;">El código caduca en 72 horas. | <a href="{unsubscribe_link}">Cancelar suscripción</a></p>',
-
-				'fr' => '<p>Bonjour {user_name},</p>
-<p>🎁 Dernière chance ! Nous avons réservé une remise spéciale rien que pour vous.</p>
-{cart_items}
-<p><strong>Total : {cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">Utilisez le code : {discount_code} pour {discount_amount} de réduction !</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Réclamer Ma Remise</a></p>
-<p style="font-size:12px;color:#999;">Le code expire dans 72 heures. | <a href="{unsubscribe_link}">Se désabonner</a></p>',
-
-				'de' => '<p>Hallo {user_name},</p>
-<p>🎁 Letzte Chance! Wir haben einen besonderen Rabatt nur für Sie gespeichert.</p>
-{cart_items}
-<p><strong>Gesamt: {cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">Code verwenden: {discount_code} für {discount_amount} Rabatt!</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Meinen Rabatt Beanspruchen</a></p>
-<p style="font-size:12px;color:#999;">Der Code läuft in 72 Stunden ab. | <a href="{unsubscribe_link}">Abmelden</a></p>',
-
-				'it' => '<p>Ciao {user_name},</p>
-<p>🎁 Ultima occasione! Abbiamo riservato uno sconto speciale solo per te.</p>
-{cart_items}
-<p><strong>Totale: {cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">Usa il codice: {discount_code} per {discount_amount} di sconto!</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Richiedi il Mio Sconto</a></p>
-<p style="font-size:12px;color:#999;">Il codice scade in 72 ore. | <a href="{unsubscribe_link}">Annulla iscrizione</a></p>',
-
-				'hi' => '<p>नमस्ते {user_name},</p>
-<p>🎁 आखिरी मौका! हमने सिर्फ आपके लिए एक विशेष छूट सुरक्षित की है।</p>
-{cart_items}
-<p><strong>कुल: {cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">कोड का उपयोग करें: {discount_code} और पाएं {discount_amount} की छूट!</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">छूट प्राप्त करें</a></p>
-<p style="font-size:12px;color:#999;">छूट कोड 72 घंटे में समाप्त हो जाएगा। | <a href="{unsubscribe_link}">सदस्यता रद्द करें</a></p>',
-
-				'pt_BR' => '<p>Olá {user_name},</p>
-<p>🎁 Última chance! Reservamos um desconto especial só para você.</p>
-{cart_items}
-<p><strong>Total: {cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">Use o código: {discount_code} e ganhe {discount_amount} de desconto!</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">Resgatar Meu Desconto</a></p>
-<p style="font-size:12px;color:#999;">O código expira em 72 horas. | <a href="{unsubscribe_link}">Cancelar inscrição</a></p>',
-
-				'zh_CN' => '<p>{user_name}，您好！</p>
-<p>🎁 最后机会！我们为您保留了一个特别折扣。</p>
-{cart_items}
-<p><strong>合计：{cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">使用代码：{discount_code} 享受 {discount_amount} 折扣！</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">领取我的折扣</a></p>
-<p style="font-size:12px;color:#999;">折扣代码将在72小时后过期。 | <a href="{unsubscribe_link}">取消订阅</a></p>',
-
-				'ar' => '<p>مرحباً {user_name}،</p>
-<p>🎁 فرصة أخيرة! لقد حجزنا خصماً خاصاً لك فقط.</p>
-{cart_items}
-<p><strong>المجموع: {cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">استخدم الكود: {discount_code} واحصل على خصم {discount_amount}!</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">احصل على خصمي</a></p>
-<p style="font-size:12px;color:#999;">ينتهي كود الخصم خلال 72 ساعة. | <a href="{unsubscribe_link}">إلغاء الاشتراك</a></p>',
-
-				'ja' => '<p>{user_name}様、こんにちは。</p>
-<p>🎁 最後のチャンス！お客様だけの特別割引をご用意しました。</p>
-{cart_items}
-<p><strong>合計：{cart_total}</strong></p>
-<p style="font-size:20px;font-weight:bold;border:2px dashed #46b450;display:inline-block;padding:10px 20px;">コードを使う：{discount_code} で {discount_amount} 割引！</p>
-<p><a href="{recovery_link}" style="background:#46b450;color:#fff;padding:12px 28px;text-decoration:none;border-radius:4px;display:inline-block;">割引を受け取る</a></p>
-<p style="font-size:12px;color:#999;">割引コードは72時間で有効期限が切れます。 | <a href="{unsubscribe_link}">配信停止</a></p>',
-			),
 		);
 
 		if ( isset( $defaults[ $template_id ][ $lang ] ) ) {
@@ -592,16 +419,14 @@ class FRC_Email_Templates {
 	public static function get_legacy_default_subjects() {
 		return array(
 			__( 'You left something behind!', 'flexi-revive-cart' ),
-			__( 'Your cart is waiting – items may sell out!', 'flexi-revive-cart' ),
-			__( "Here's a special offer to complete your purchase!", 'flexi-revive-cart' ),
 		);
 	}
 
 	/**
 	 * Return allowed placeholders for a given template type.
 	 *
-	 * Friendly and Urgency templates only allow base placeholders.
-	 * Incentive/Discount templates (stage 3) additionally allow discount placeholders.
+	 * Free version only supports base placeholders for the friendly reminder.
+	 * Pro can extend this via the frc_allowed_placeholders filter.
 	 *
 	 * @param string $template_id Template ID (e.g. 'reminder-1').
 	 * @return array List of allowed placeholder names (without braces).
@@ -619,35 +444,22 @@ class FRC_Email_Templates {
 			'tracking_pixel',
 		);
 
-		$discount = array(
-			'discount_code',
-			'discount_amount',
-			'discount_expiry',
-		);
-
-		$pro_only = array(
-			'cart_expiry',
-			'low_stock_alert',
-		);
-
-		// Only incentive/discount templates (stage 3) may use discount placeholders.
-		if ( 'reminder-3' === $template_id ) {
-			return array_merge( $base, $discount, $pro_only );
-		}
-
-		// Urgency templates (stage 2) only use base placeholders (no Pro-only).
-		if ( 'reminder-2' === $template_id ) {
-			return $base;
-		}
-
-		return $base;
+		/**
+		 * Filters the allowed placeholders for a template.
+		 *
+		 * Pro can add discount and other placeholders for additional templates.
+		 *
+		 * @param array  $placeholders List of allowed placeholder names.
+		 * @param string $template_id  The template ID.
+		 */
+		return apply_filters( 'frc_allowed_placeholders', $base, $template_id );
 	}
 
 	/**
 	 * Return the list of Pro-only placeholder names (without braces).
 	 *
-	 * These placeholders are stripped from templates in the Free version
-	 * and hidden from the email editor UI.
+	 * These placeholders are used by the email editor UI to indicate
+	 * which placeholders require the Pro add-on.
 	 *
 	 * @return array
 	 */
@@ -658,29 +470,20 @@ class FRC_Email_Templates {
 	/**
 	 * Validate and sanitize placeholders in email content based on template type.
 	 *
-	 * Pro-only placeholders are stripped from non-Incentive templates (Friendly/Urgency).
-	 * In Free version, all Pro-only placeholders are always replaced with empty strings.
+	 * In Free version, Pro-only placeholders are replaced with empty strings.
 	 *
 	 * @param string $content     Email body or subject.
 	 * @param string $template_id Template ID.
 	 * @return string Sanitized content.
 	 */
 	public static function validate_placeholders( $content, $template_id ) {
-		$allowed = self::get_allowed_placeholders( $template_id );
-
-		// Strip all Pro-only placeholders that are not allowed for this template type.
-		foreach ( self::get_pro_only_placeholders() as $placeholder ) {
-			if ( in_array( $placeholder, $allowed, true ) ) {
-				continue;
-			}
-			if ( strpos( $content, '{' . $placeholder . '}' ) !== false ) {
-				self::log_missing_translation( 'Invalid placeholder {' . $placeholder . '} in template ' . $template_id . ' – stripped.' );
-				$content = str_replace( '{' . $placeholder . '}', '', $content );
-			}
-		}
-
-		// Strip Pro-only placeholders when the Pro add-on is not active.
-		/** This filter is documented in class-frc-admin-email-editor.php */
+		/**
+		 * Filters the list of Pro-only placeholders.
+		 *
+		 * Pro can return an empty array to allow all placeholders.
+		 *
+		 * @param array $placeholders List of Pro-only placeholder names.
+		 */
 		$pro_placeholders = apply_filters( 'frc_pro_only_placeholders', self::get_pro_only_placeholders() );
 		if ( ! empty( $pro_placeholders ) ) {
 			foreach ( $pro_placeholders as $placeholder ) {

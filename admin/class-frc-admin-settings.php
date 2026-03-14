@@ -118,7 +118,15 @@ class FRC_Admin_Settings {
 		if ( ! is_array( $value ) ) {
 			return array( 'friendly', 'friendly', 'friendly' );
 		}
-		$allowed = array( 'friendly', 'urgency', 'incentive' );
+		$allowed = array( 'friendly' );
+		/**
+		 * Filters the allowed reminder type values for sanitization.
+		 *
+		 * Pro can add 'urgency', 'incentive', etc.
+		 *
+		 * @param array $allowed List of allowed type strings.
+		 */
+		$allowed = apply_filters( 'frc_allowed_reminder_types', $allowed );
 		return array_map(
 			function ( $v ) use ( $allowed ) {
 				$v = sanitize_text_field( $v );
@@ -136,7 +144,9 @@ class FRC_Admin_Settings {
 	 */
 	public function sanitize_reminder_type( $value ) {
 		$value   = sanitize_text_field( $value );
-		$allowed = array( 'friendly', 'urgency', 'incentive' );
+		$allowed = array( 'friendly' );
+		/** This filter is documented in sanitize_reminder_types(). */
+		$allowed = apply_filters( 'frc_allowed_reminder_types', $allowed );
 		return in_array( $value, $allowed, true ) ? $value : 'friendly';
 	}
 
@@ -651,35 +661,97 @@ class FRC_Admin_Settings {
 		?>
 		<table class="form-table">
 			<tr>
-				<th><?php esc_html_e( 'Enable Dynamic Coupons', 'flexi-revive-cart' ); ?></th>
-				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Automatically generate unique coupon codes for recovery emails', 'flexi-revive-cart' ); ?></label></td>
+				<th scope="row"><?php esc_html_e( 'Enable Dynamic Coupons', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label><input type="checkbox" disabled />
+					<?php esc_html_e( 'Automatically generate a unique coupon for each abandoned cart recovery email.', 'flexi-revive-cart' ); ?></label>
+				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Discount Type', 'flexi-revive-cart' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Discount Type', 'flexi-revive-cart' ); ?></th>
 				<td>
 					<select disabled>
-						<option><?php esc_html_e( 'Percentage', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Percentage Discount (e.g. 10%)', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Fixed Cart Discount (e.g. $5 off)', 'flexi-revive-cart' ); ?></option>
 					</select>
 				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Discount Amount', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" disabled value="10" class="small-text" /> <span class="description">%</span></td>
-			</tr>
-			<tr>
-				<th><?php esc_html_e( 'Coupon Expiry', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" disabled value="72" class="small-text" /> <span class="description"><?php esc_html_e( 'hours', 'flexi-revive-cart' ); ?></span></td>
-			</tr>
-			<tr>
-				<th><?php esc_html_e( 'Minimum Cart Value', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" disabled value="0" class="small-text" /></td>
-			</tr>
-			<tr>
-				<th><?php esc_html_e( 'Apply to Reminder', 'flexi-revive-cart' ); ?></th>
+				<th scope="row"><?php esc_html_e( 'Discount Amount', 'flexi-revive-cart' ); ?></th>
 				<td>
-					<select disabled>
-						<option><?php esc_html_e( 'Reminder 3 (Incentive)', 'flexi-revive-cart' ); ?></option>
-					</select>
+					<input type="number" disabled value="10" class="small-text" />
+					<p class="description"><?php esc_html_e( 'Enter a percentage (e.g. 10 for 10%) or a fixed amount (e.g. 5 for $5 off) depending on the Discount Type above.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Minimum Cart Value', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" disabled value="0" class="small-text" />
+					<p class="description"><?php esc_html_e( 'Apply coupon only when the cart total is at or above this amount. Set to 0 to apply to all carts.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Coupon Expiry', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" disabled value="7" class="small-text" />
+					<select disabled><option><?php esc_html_e( 'days', 'flexi-revive-cart' ); ?></option></select>
+					<p class="description"><?php esc_html_e( 'Time from the moment the coupon is generated before it expires.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Usage Limit per Coupon', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" disabled value="1" class="small-text" />
+					<p class="description"><?php esc_html_e( 'How many times can this coupon be used in total (e.g. 1 for single-use).', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Exclude Sale Items', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label><input type="checkbox" disabled />
+					<?php esc_html_e( 'Do not apply the coupon to items that are already on sale.', 'flexi-revive-cart' ); ?></label>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Exclude Product IDs', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'e.g. 12,45,78', 'flexi-revive-cart' ); ?>" />
+					<p class="description"><?php esc_html_e( 'Comma-separated list of product IDs to exclude from this coupon.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Exclude Category IDs', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'e.g. 5,10', 'flexi-revive-cart' ); ?>" />
+					<p class="description"><?php esc_html_e( 'Comma-separated list of product category IDs to exclude from this coupon.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Coupon Code Prefix', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" disabled class="regular-text" placeholder="RECOVER" />
+					<p class="description"><?php esc_html_e( 'Prefix prepended to each auto-generated coupon code (letters, digits and hyphens only). Example: SUMMER2024 produces codes like SUMMER2024-A1B2C3D4.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Coupon Code Suffix', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'Optional', 'flexi-revive-cart' ); ?>" />
+					<p class="description"><?php esc_html_e( 'Optional suffix appended after the random segment (letters, digits and hyphens only). Leave blank to omit.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Coupon Code Preview', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<code>RECOVER-A1B2C3D4</code>
+					<p class="description"><?php esc_html_e( 'Sample of how a generated code will look. The random segment changes per cart.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Auto-Apply Coupon on Recovery', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label><input type="checkbox" disabled checked />
+					<?php esc_html_e( 'Automatically apply the coupon to the restored cart when a customer clicks the recovery link.', 'flexi-revive-cart' ); ?></label>
 				</td>
 			</tr>
 		</table>
@@ -691,7 +763,7 @@ class FRC_Admin_Settings {
 		?>
 		<table class="form-table">
 			<tr>
-				<th><?php esc_html_e( 'Enable SMS Reminders', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Enable SMS', 'flexi-revive-cart' ); ?></th>
 				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Send abandoned cart reminders via SMS', 'flexi-revive-cart' ); ?></label></td>
 			</tr>
 			<tr>
@@ -699,25 +771,31 @@ class FRC_Admin_Settings {
 				<td>
 					<select disabled>
 						<option><?php esc_html_e( 'Twilio', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Plivo', 'flexi-revive-cart' ); ?></option>
 					</select>
 				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Account SID / API Key', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Twilio Account SID', 'flexi-revive-cart' ); ?></th>
 				<td><input type="text" disabled class="regular-text" placeholder="••••••••" /></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Auth Token / API Secret', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Twilio Auth Token', 'flexi-revive-cart' ); ?></th>
 				<td><input type="password" disabled class="regular-text" placeholder="••••••••" /></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'From Number', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Twilio From Number', 'flexi-revive-cart' ); ?></th>
 				<td><input type="text" disabled class="regular-text" placeholder="+1234567890" /></td>
 			</tr>
+			<?php for ( $i = 1; $i <= 3; $i++ ) : ?>
 			<tr>
-				<th><?php esc_html_e( 'SMS Template', 'flexi-revive-cart' ); ?></th>
-				<td><textarea disabled class="large-text" rows="3" placeholder="<?php esc_attr_e( 'Hi {user_name}, you left items in your cart at {store_name}. Complete your order: {recovery_link}', 'flexi-revive-cart' ); ?>"></textarea></td>
+				<th><?php echo esc_html( sprintf( /* translators: %d: stage number */ __( 'SMS Template – Stage %d', 'flexi-revive-cart' ), $i ) ); ?></th>
+				<td>
+					<textarea disabled class="large-text" rows="3" placeholder="<?php esc_attr_e( 'Hi {user_name}, you left items in your cart at {store_name}. Complete your order: {recovery_link}', 'flexi-revive-cart' ); ?>"></textarea>
+					<p class="description"><?php esc_html_e( 'Supports: {user_name}, {cart_total}, {recovery_link}, {store_name}, {discount_code}, {discount_amount}', 'flexi-revive-cart' ); ?></p>
+				</td>
 			</tr>
+			<?php endfor; ?>
 		</table>
 		<?php
 	}
@@ -727,32 +805,41 @@ class FRC_Admin_Settings {
 		?>
 		<table class="form-table">
 			<tr>
-				<th><?php esc_html_e( 'Enable WhatsApp Reminders', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Enable WhatsApp Notifications', 'flexi-revive-cart' ); ?></th>
 				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Send abandoned cart reminders via WhatsApp', 'flexi-revive-cart' ); ?></label></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'WhatsApp Business API Provider', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'WhatsApp Provider', 'flexi-revive-cart' ); ?></th>
 				<td>
 					<select disabled>
-						<option><?php esc_html_e( 'Official Cloud API', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Twilio WhatsApp', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Plivo WhatsApp', 'flexi-revive-cart' ); ?></option>
 					</select>
+					<p class="description"><?php esc_html_e( 'Uses the Twilio/Plivo credentials configured in the SMS tab.', 'flexi-revive-cart' ); ?></p>
 				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Phone Number ID', 'flexi-revive-cart' ); ?></th>
-				<td><input type="text" disabled class="regular-text" placeholder="••••••••" /></td>
+				<th><?php esc_html_e( 'WhatsApp From Number', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" disabled class="regular-text" placeholder="+14155238886" />
+					<p class="description"><?php esc_html_e( 'Your Twilio/Plivo WhatsApp-enabled phone number in E.164 format (e.g. +14155238886). For Twilio sandbox, use the sandbox number.', 'flexi-revive-cart' ); ?></p>
+				</td>
 			</tr>
+			<?php for ( $i = 1; $i <= 3; $i++ ) : ?>
 			<tr>
-				<th><?php esc_html_e( 'Access Token', 'flexi-revive-cart' ); ?></th>
-				<td><input type="password" disabled class="regular-text" placeholder="••••••••" /></td>
+				<th><?php echo esc_html( sprintf( /* translators: %d: stage number */ __( 'WhatsApp Template – Stage %d', 'flexi-revive-cart' ), $i ) ); ?></th>
+				<td>
+					<textarea disabled class="large-text" rows="3" placeholder="<?php esc_attr_e( 'Hi {user_name}, your cart at {store_name} is waiting! Complete your purchase: {cart_link}', 'flexi-revive-cart' ); ?>"></textarea>
+					<p class="description"><?php esc_html_e( 'Supports: {user_name}, {cart_total}, {cart_link}, {store_name}, {discount_code}, {discount_amount}, {abandoned_time}', 'flexi-revive-cart' ); ?></p>
+				</td>
 			</tr>
+			<?php endfor; ?>
 			<tr>
-				<th><?php esc_html_e( 'Message Template Name', 'flexi-revive-cart' ); ?></th>
-				<td><input type="text" disabled class="regular-text" placeholder="abandoned_cart_reminder" /></td>
-			</tr>
-			<tr>
-				<th><?php esc_html_e( 'Message Preview', 'flexi-revive-cart' ); ?></th>
-				<td><textarea disabled class="large-text" rows="3" placeholder="<?php esc_attr_e( 'Hi {user_name}, your cart at {store_name} is waiting! Tap here to complete your purchase: {recovery_link}', 'flexi-revive-cart' ); ?>"></textarea></td>
+				<th><?php esc_html_e( 'Bulk Campaign Default Message', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<textarea disabled class="large-text" rows="3" placeholder="<?php esc_attr_e( 'Hi {user_name}, your cart at {store_name} is waiting! Complete your purchase: {cart_link}', 'flexi-revive-cart' ); ?>"></textarea>
+					<p class="description"><?php esc_html_e( 'Default message template used for bulk WhatsApp campaigns.', 'flexi-revive-cart' ); ?></p>
+				</td>
 			</tr>
 		</table>
 		<?php
@@ -767,33 +854,23 @@ class FRC_Admin_Settings {
 				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Send abandoned cart reminders via browser push notifications', 'flexi-revive-cart' ); ?></label></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Push Provider', 'flexi-revive-cart' ); ?></th>
-				<td>
-					<select disabled>
-						<option><?php esc_html_e( 'OneSignal', 'flexi-revive-cart' ); ?></option>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<th><?php esc_html_e( 'App ID', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'OneSignal App ID', 'flexi-revive-cart' ); ?></th>
 				<td><input type="text" disabled class="regular-text" placeholder="••••••••" /></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'REST API Key', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'OneSignal REST API Key', 'flexi-revive-cart' ); ?></th>
 				<td><input type="password" disabled class="regular-text" placeholder="••••••••" /></td>
 			</tr>
+			<?php for ( $i = 1; $i <= 3; $i++ ) : ?>
 			<tr>
-				<th><?php esc_html_e( 'Notification Title', 'flexi-revive-cart' ); ?></th>
-				<td><input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'You left items in your cart!', 'flexi-revive-cart' ); ?>" /></td>
+				<th><?php echo esc_html( sprintf( /* translators: %d: stage number */ __( 'Push Title – Stage %d', 'flexi-revive-cart' ), $i ) ); ?></th>
+				<td><input type="text" disabled class="large-text" placeholder="<?php esc_attr_e( 'Your cart is waiting!', 'flexi-revive-cart' ); ?>" /></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Notification Message', 'flexi-revive-cart' ); ?></th>
-				<td><textarea disabled class="large-text" rows="2" placeholder="<?php esc_attr_e( 'Hi {user_name}, complete your purchase at {store_name} before your cart expires.', 'flexi-revive-cart' ); ?>"></textarea></td>
+				<th><?php echo esc_html( sprintf( /* translators: %d: stage number */ __( 'Push Message – Stage %d', 'flexi-revive-cart' ), $i ) ); ?></th>
+				<td><input type="text" disabled class="large-text" placeholder="<?php esc_attr_e( 'Complete your purchase at {store_name}.', 'flexi-revive-cart' ); ?>" /></td>
 			</tr>
-			<tr>
-				<th><?php esc_html_e( 'Notification Icon URL', 'flexi-revive-cart' ); ?></th>
-				<td><input type="url" disabled class="regular-text" placeholder="https://example.com/icon.png" /></td>
-			</tr>
+			<?php endfor; ?>
 		</table>
 		<?php
 	}
@@ -803,40 +880,35 @@ class FRC_Admin_Settings {
 		?>
 		<table class="form-table">
 			<tr>
-				<th><?php esc_html_e( 'Enable Exit-Intent Popups', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Enable Guest Capture Popup', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Show a popup to capture guest email addresses for cart recovery', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Enable Exit-Intent Popup', 'flexi-revive-cart' ); ?></th>
 				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Show a popup when a user is about to leave with items in their cart', 'flexi-revive-cart' ); ?></label></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Popup Trigger', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Popup Delay', 'flexi-revive-cart' ); ?></th>
 				<td>
-					<select disabled>
-						<option><?php esc_html_e( 'Exit Intent', 'flexi-revive-cart' ); ?></option>
-					</select>
+					<input type="number" disabled value="30" class="small-text" />
+					<select disabled><option><?php esc_html_e( 'seconds', 'flexi-revive-cart' ); ?></option></select>
 				</td>
-			</tr>
-			<tr>
-				<th><?php esc_html_e( 'Display Delay', 'flexi-revive-cart' ); ?></th>
-				<td><input type="number" disabled value="0" class="small-text" /> <span class="description"><?php esc_html_e( 'seconds', 'flexi-revive-cart' ); ?></span></td>
-			</tr>
-			<tr>
-				<th><?php esc_html_e( 'Popup Headline', 'flexi-revive-cart' ); ?></th>
-				<td><input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'Wait! Don\'t forget your items!', 'flexi-revive-cart' ); ?>" /></td>
 			</tr>
 			<tr>
 				<th><?php esc_html_e( 'Popup Message', 'flexi-revive-cart' ); ?></th>
-				<td><textarea disabled class="large-text" rows="2" placeholder="<?php esc_attr_e( 'Complete your purchase now and enjoy free shipping on orders over $50.', 'flexi-revive-cart' ); ?>"></textarea></td>
+				<td><input type="text" disabled class="large-text" placeholder="<?php esc_attr_e( 'Wait! Don\'t leave your cart behind.', 'flexi-revive-cart' ); ?>" /></td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Show On Pages', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Popup Button Text', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'Save My Cart', 'flexi-revive-cart' ); ?>" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Browse Abandonment Follow-up', 'flexi-revive-cart' ); ?></th>
 				<td>
-					<label><input type="checkbox" disabled checked /> <?php esc_html_e( 'Cart', 'flexi-revive-cart' ); ?></label><br>
-					<label><input type="checkbox" disabled checked /> <?php esc_html_e( 'Checkout', 'flexi-revive-cart' ); ?></label><br>
-					<label><input type="checkbox" disabled /> <?php esc_html_e( 'Product pages', 'flexi-revive-cart' ); ?></label>
+					<input type="number" disabled value="2" class="small-text" />
+					<select disabled><option><?php esc_html_e( 'hours', 'flexi-revive-cart' ); ?></option></select>
+					<p class="description"><?php esc_html_e( 'Time after a product page view before sending a browse abandonment follow-up email.', 'flexi-revive-cart' ); ?></p>
 				</td>
-			</tr>
-			<tr>
-				<th><?php esc_html_e( 'Include Discount', 'flexi-revive-cart' ); ?></th>
-				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Offer a discount code in the popup', 'flexi-revive-cart' ); ?></label></td>
 			</tr>
 		</table>
 		<?php
@@ -847,32 +919,69 @@ class FRC_Admin_Settings {
 		?>
 		<table class="form-table">
 			<tr>
-				<th><?php esc_html_e( 'Enable Advanced Guest Tracking', 'flexi-revive-cart' ); ?></th>
-				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Capture guest emails before checkout for cart recovery', 'flexi-revive-cart' ); ?></label></td>
+				<th><?php esc_html_e( 'Track Guest Carts', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label><input type="checkbox" disabled />
+					<?php esc_html_e( 'Enable tracking of guest (non-logged-in) user carts.', 'flexi-revive-cart' ); ?></label>
+				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Email Capture Method', 'flexi-revive-cart' ); ?></th>
+				<th><?php esc_html_e( 'Capture Method', 'flexi-revive-cart' ); ?></th>
 				<td>
 					<select disabled>
-						<option><?php esc_html_e( 'Add to Cart Popup', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Popup', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Checkout Field', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Force Login', 'flexi-revive-cart' ); ?></option>
 					</select>
+					<p class="description"><?php esc_html_e( 'How to capture guest email addresses for cart recovery.', 'flexi-revive-cart' ); ?></p>
 				</td>
 			</tr>
 			<tr>
 				<th><?php esc_html_e( 'Popup Timing', 'flexi-revive-cart' ); ?></th>
 				<td>
 					<select disabled>
-						<option><?php esc_html_e( 'Immediately after add to cart', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Exit-Intent', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Add-to-Cart', 'flexi-revive-cart' ); ?></option>
+						<option><?php esc_html_e( 'Checkout Page', 'flexi-revive-cart' ); ?></option>
 					</select>
+					<p class="description"><?php esc_html_e( 'When to display the email capture popup to guest users.', 'flexi-revive-cart' ); ?></p>
 				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Consent Text', 'flexi-revive-cart' ); ?></th>
-				<td><textarea disabled class="large-text" rows="2" placeholder="<?php esc_attr_e( 'By providing your email, you agree to receive cart reminder emails. You can unsubscribe at any time.', 'flexi-revive-cart' ); ?>"></textarea></td>
+				<th><?php esc_html_e( 'Force Login', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label><input type="checkbox" disabled />
+					<?php esc_html_e( 'Redirect guests to login/register before checkout.', 'flexi-revive-cart' ); ?></label>
+				</td>
 			</tr>
 			<tr>
-				<th><?php esc_html_e( 'Auto-detect Billing Email', 'flexi-revive-cart' ); ?></th>
-				<td><label><input type="checkbox" disabled checked /> <?php esc_html_e( 'Capture email as it is typed on the checkout page', 'flexi-revive-cart' ); ?></label></td>
+				<th><?php esc_html_e( 'Pre-Checkout Email Capture', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label><input type="checkbox" disabled />
+					<?php esc_html_e( 'Show email capture popup before checkout.', 'flexi-revive-cart' ); ?></label>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Guest Cart Retention', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="number" disabled value="30" class="small-text" />
+					<select disabled><option><?php esc_html_e( 'days', 'flexi-revive-cart' ); ?></option></select>
+					<p class="description"><?php esc_html_e( 'How long to retain guest cart data before automatic deletion.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Exclude by Country', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'e.g. US,GB,DE', 'flexi-revive-cart' ); ?>" />
+					<p class="description"><?php esc_html_e( 'Comma-separated list of country codes to exclude from guest tracking.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Exclude by IP', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<textarea disabled class="large-text" rows="3" placeholder="<?php esc_attr_e( 'One IP address per line', 'flexi-revive-cart' ); ?>"></textarea>
+					<p class="description"><?php esc_html_e( 'IP addresses to exclude from guest tracking (one per line).', 'flexi-revive-cart' ); ?></p>
+				</td>
 			</tr>
 		</table>
 		<?php
