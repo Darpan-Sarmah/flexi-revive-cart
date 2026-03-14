@@ -105,11 +105,6 @@
 	border-radius: 0 0 8px 8px;
 }
 
-.frc-pro-locked {
-	opacity: .6;
-	pointer-events: none;
-}
-
 /* ─── Status badges ──────────────────────────────────────────────────────── */
 .frc-badge {
 	display: inline-block;
@@ -142,6 +137,63 @@
 /* ─── Pro section ────────────────────────────────────────────────────────── */
 .frc-pro-section {
 	margin-top: 32px;
+}
+
+/* ─── Pro teaser tabs & badge ────────────────────────────────────────────── */
+.frc-pro-tab {
+	color: #999 !important;
+}
+
+.frc-pro-tab:hover {
+	color: #7f54b3 !important;
+}
+
+.frc-pro-badge {
+	display: inline-block;
+	background: #7f54b3;
+	color: #fff;
+	font-size: 9px;
+	font-weight: 700;
+	padding: 1px 5px;
+	border-radius: 3px;
+	vertical-align: middle;
+	margin-left: 2px;
+	letter-spacing: .5px;
+	line-height: 1.4;
+}
+
+/* ─── Pro upsell banner ─────────────────────────────────────────────────── */
+.frc-pro-upsell {
+	display: flex;
+	align-items: flex-start;
+	gap: 14px;
+	background: linear-gradient(135deg, #f3edfc 0%, #ede4fb 100%);
+	border: 1px solid #d3c5eb;
+	border-radius: 8px;
+	padding: 20px 24px;
+	margin-bottom: 24px;
+}
+
+.frc-pro-upsell .dashicons-lock {
+	font-size: 28px;
+	color: #7f54b3;
+	margin-top: 2px;
+}
+
+.frc-pro-upsell strong {
+	font-size: 15px;
+	color: #2c1650;
+}
+
+.frc-pro-upsell p {
+	margin: 6px 0 12px;
+	color: #4a3770;
+}
+
+/* ─── Pro locked fields ─────────────────────────────────────────────────── */
+.frc-pro-locked {
+	opacity: .6;
+	pointer-events: none;
 }
 
 /* ─── A/B winner ─────────────────────────────────────────────────────────── */

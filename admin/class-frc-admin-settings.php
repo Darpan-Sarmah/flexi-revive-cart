@@ -206,13 +206,44 @@ class FRC_Admin_Settings {
 				 */
 				$tabs = apply_filters( 'frc_admin_tabs', $tabs );
 
+				// Pro teaser tabs – shown only when the Pro add-on is not active.
+				$pro_teaser_tab_ids = array();
+				if ( ! FRC_PRO_ACTIVE ) {
+					$pro_teaser_tabs = array(
+						'discounts'      => __( 'Discounts', 'flexi-revive-cart' ),
+						'sms'            => __( 'SMS', 'flexi-revive-cart' ),
+						'whatsapp'       => __( 'WhatsApp', 'flexi-revive-cart' ),
+						'push'           => __( 'Push Notifications', 'flexi-revive-cart' ),
+						'popups'         => __( 'Popups', 'flexi-revive-cart' ),
+						'guest_tracking' => __( 'Guest Tracking', 'flexi-revive-cart' ),
+						'ab_testing'     => __( 'A/B Testing', 'flexi-revive-cart' ),
+					);
+					$pro_teaser_tab_ids = array_keys( $pro_teaser_tabs );
+					$tabs = array_merge( $tabs, $pro_teaser_tabs );
+				}
+
 				foreach ( $tabs as $tab_id => $tab_label ) {
-					$class = ( $tab_id === $active_tab ) ? 'nav-tab nav-tab-active' : 'nav-tab';
-					echo '<a href="' . esc_url( admin_url( 'admin.php?page=frc-settings&tab=' . $tab_id ) ) . '" class="' . esc_attr( $class ) . '">' . esc_html( $tab_label ) . '</a>';
+					$is_pro_teaser = in_array( $tab_id, $pro_teaser_tab_ids, true );
+					$class         = ( $tab_id === $active_tab ) ? 'nav-tab nav-tab-active' : 'nav-tab';
+					if ( $is_pro_teaser ) {
+						$class .= ' frc-pro-tab';
+					}
+					echo '<a href="' . esc_url( admin_url( 'admin.php?page=frc-settings&tab=' . $tab_id ) ) . '" class="' . esc_attr( $class ) . '">'
+						. esc_html( $tab_label )
+						. ( $is_pro_teaser ? ' <span class="frc-pro-badge">PRO</span>' : '' )
+						. '</a>';
 				}
 				?>
 			</nav>
 
+			<?php
+			$is_pro_teaser_tab = in_array( $active_tab, $pro_teaser_tab_ids, true );
+			if ( $is_pro_teaser_tab ) :
+			?>
+			<div class="frc-settings-form">
+				<?php $this->render_pro_teaser_tab( $active_tab ); ?>
+			</div>
+			<?php else : ?>
 			<form method="post" action="options.php" class="frc-settings-form">
 				<?php
 
@@ -249,6 +280,7 @@ class FRC_Admin_Settings {
 				submit_button();
 				?>
 			</form>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -521,6 +553,364 @@ class FRC_Admin_Settings {
 			</option>
 			<?php endforeach; ?>
 		</select>
+		<?php
+	}
+
+	/* ===================================================================
+	 * Pro Teaser Tabs – UI-only placeholders with upsell messages.
+	 * No Pro logic is included; these are purely visual teasers.
+	 * =================================================================== */
+
+	/**
+	 * Render the Pro teaser content for a given tab.
+	 *
+	 * @param string $tab_id The Pro teaser tab ID.
+	 */
+	private function render_pro_teaser_tab( $tab_id ) {
+		$this->render_pro_upsell_banner( $tab_id );
+
+		echo '<div class="frc-pro-locked">';
+
+		switch ( $tab_id ) {
+			case 'discounts':
+				$this->render_discounts_teaser();
+				break;
+			case 'sms':
+				$this->render_sms_teaser();
+				break;
+			case 'whatsapp':
+				$this->render_whatsapp_teaser();
+				break;
+			case 'push':
+				$this->render_push_teaser();
+				break;
+			case 'popups':
+				$this->render_popups_teaser();
+				break;
+			case 'guest_tracking':
+				$this->render_guest_tracking_teaser();
+				break;
+			case 'ab_testing':
+				$this->render_ab_testing_teaser();
+				break;
+		}
+
+		echo '</div>';
+	}
+
+	/**
+	 * Render the Pro upsell banner shown above teaser content.
+	 *
+	 * @param string $tab_id The Pro teaser tab ID.
+	 */
+	private function render_pro_upsell_banner( $tab_id ) {
+		$feature_names = array(
+			'discounts'      => __( 'Dynamic Discounts & Coupons', 'flexi-revive-cart' ),
+			'sms'            => __( 'SMS Reminders', 'flexi-revive-cart' ),
+			'whatsapp'       => __( 'WhatsApp Reminders', 'flexi-revive-cart' ),
+			'push'           => __( 'Push Notifications', 'flexi-revive-cart' ),
+			'popups'         => __( 'Exit-Intent Popups', 'flexi-revive-cart' ),
+			'guest_tracking' => __( 'Advanced Guest Tracking', 'flexi-revive-cart' ),
+			'ab_testing'     => __( 'A/B Testing', 'flexi-revive-cart' ),
+		);
+		$feature = isset( $feature_names[ $tab_id ] ) ? $feature_names[ $tab_id ] : '';
+		?>
+		<div class="frc-pro-upsell">
+			<span class="dashicons dashicons-lock"></span>
+			<div>
+				<strong>
+				<?php
+				echo esc_html(
+					sprintf(
+						/* translators: %s: Pro feature name */
+						__( '%s is a Pro Feature', 'flexi-revive-cart' ),
+						$feature
+					)
+				);
+				?>
+				</strong>
+				<p>
+				<?php
+				echo esc_html(
+					sprintf(
+						/* translators: %s: Pro feature name */
+						__( 'Upgrade to the Pro add-on to unlock %s and more advanced cart recovery features.', 'flexi-revive-cart' ),
+						$feature
+					)
+				);
+				?>
+				</p>
+				<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" rel="noopener noreferrer" class="button button-primary"><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></a>
+			</div>
+		</div>
+		<?php
+	}
+
+	/** Render Discounts teaser fields. */
+	private function render_discounts_teaser() {
+		?>
+		<table class="form-table">
+			<tr>
+				<th><?php esc_html_e( 'Enable Dynamic Coupons', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Automatically generate unique coupon codes for recovery emails', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Discount Type', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select disabled>
+						<option><?php esc_html_e( 'Percentage', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Discount Amount', 'flexi-revive-cart' ); ?></th>
+				<td><input type="number" disabled value="10" class="small-text" /> <span class="description">%</span></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Coupon Expiry', 'flexi-revive-cart' ); ?></th>
+				<td><input type="number" disabled value="72" class="small-text" /> <span class="description"><?php esc_html_e( 'hours', 'flexi-revive-cart' ); ?></span></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Minimum Cart Value', 'flexi-revive-cart' ); ?></th>
+				<td><input type="number" disabled value="0" class="small-text" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Apply to Reminder', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select disabled>
+						<option><?php esc_html_e( 'Reminder 3 (Incentive)', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/** Render SMS teaser fields. */
+	private function render_sms_teaser() {
+		?>
+		<table class="form-table">
+			<tr>
+				<th><?php esc_html_e( 'Enable SMS Reminders', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Send abandoned cart reminders via SMS', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'SMS Provider', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select disabled>
+						<option><?php esc_html_e( 'Twilio', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Account SID / API Key', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="••••••••" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Auth Token / API Secret', 'flexi-revive-cart' ); ?></th>
+				<td><input type="password" disabled class="regular-text" placeholder="••••••••" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'From Number', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="+1234567890" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'SMS Template', 'flexi-revive-cart' ); ?></th>
+				<td><textarea disabled class="large-text" rows="3" placeholder="<?php esc_attr_e( 'Hi {user_name}, you left items in your cart at {store_name}. Complete your order: {recovery_link}', 'flexi-revive-cart' ); ?>"></textarea></td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/** Render WhatsApp teaser fields. */
+	private function render_whatsapp_teaser() {
+		?>
+		<table class="form-table">
+			<tr>
+				<th><?php esc_html_e( 'Enable WhatsApp Reminders', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Send abandoned cart reminders via WhatsApp', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'WhatsApp Business API Provider', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select disabled>
+						<option><?php esc_html_e( 'Official Cloud API', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Phone Number ID', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="••••••••" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Access Token', 'flexi-revive-cart' ); ?></th>
+				<td><input type="password" disabled class="regular-text" placeholder="••••••••" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Message Template Name', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="abandoned_cart_reminder" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Message Preview', 'flexi-revive-cart' ); ?></th>
+				<td><textarea disabled class="large-text" rows="3" placeholder="<?php esc_attr_e( 'Hi {user_name}, your cart at {store_name} is waiting! Tap here to complete your purchase: {recovery_link}', 'flexi-revive-cart' ); ?>"></textarea></td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/** Render Push Notifications teaser fields. */
+	private function render_push_teaser() {
+		?>
+		<table class="form-table">
+			<tr>
+				<th><?php esc_html_e( 'Enable Push Notifications', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Send abandoned cart reminders via browser push notifications', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Push Provider', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select disabled>
+						<option><?php esc_html_e( 'OneSignal', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'App ID', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="••••••••" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'REST API Key', 'flexi-revive-cart' ); ?></th>
+				<td><input type="password" disabled class="regular-text" placeholder="••••••••" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Notification Title', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'You left items in your cart!', 'flexi-revive-cart' ); ?>" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Notification Message', 'flexi-revive-cart' ); ?></th>
+				<td><textarea disabled class="large-text" rows="2" placeholder="<?php esc_attr_e( 'Hi {user_name}, complete your purchase at {store_name} before your cart expires.', 'flexi-revive-cart' ); ?>"></textarea></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Notification Icon URL', 'flexi-revive-cart' ); ?></th>
+				<td><input type="url" disabled class="regular-text" placeholder="https://example.com/icon.png" /></td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/** Render Popups teaser fields. */
+	private function render_popups_teaser() {
+		?>
+		<table class="form-table">
+			<tr>
+				<th><?php esc_html_e( 'Enable Exit-Intent Popups', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Show a popup when a user is about to leave with items in their cart', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Popup Trigger', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select disabled>
+						<option><?php esc_html_e( 'Exit Intent', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Display Delay', 'flexi-revive-cart' ); ?></th>
+				<td><input type="number" disabled value="0" class="small-text" /> <span class="description"><?php esc_html_e( 'seconds', 'flexi-revive-cart' ); ?></span></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Popup Headline', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'Wait! Don\'t forget your items!', 'flexi-revive-cart' ); ?>" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Popup Message', 'flexi-revive-cart' ); ?></th>
+				<td><textarea disabled class="large-text" rows="2" placeholder="<?php esc_attr_e( 'Complete your purchase now and enjoy free shipping on orders over $50.', 'flexi-revive-cart' ); ?>"></textarea></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Show On Pages', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<label><input type="checkbox" disabled checked /> <?php esc_html_e( 'Cart', 'flexi-revive-cart' ); ?></label><br>
+					<label><input type="checkbox" disabled checked /> <?php esc_html_e( 'Checkout', 'flexi-revive-cart' ); ?></label><br>
+					<label><input type="checkbox" disabled /> <?php esc_html_e( 'Product pages', 'flexi-revive-cart' ); ?></label>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Include Discount', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Offer a discount code in the popup', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/** Render Guest Tracking teaser fields. */
+	private function render_guest_tracking_teaser() {
+		?>
+		<table class="form-table">
+			<tr>
+				<th><?php esc_html_e( 'Enable Advanced Guest Tracking', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Capture guest emails before checkout for cart recovery', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Email Capture Method', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select disabled>
+						<option><?php esc_html_e( 'Add to Cart Popup', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Popup Timing', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select disabled>
+						<option><?php esc_html_e( 'Immediately after add to cart', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Consent Text', 'flexi-revive-cart' ); ?></th>
+				<td><textarea disabled class="large-text" rows="2" placeholder="<?php esc_attr_e( 'By providing your email, you agree to receive cart reminder emails. You can unsubscribe at any time.', 'flexi-revive-cart' ); ?>"></textarea></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Auto-detect Billing Email', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled checked /> <?php esc_html_e( 'Capture email as it is typed on the checkout page', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/** Render A/B Testing teaser fields. */
+	private function render_ab_testing_teaser() {
+		?>
+		<table class="form-table">
+			<tr>
+				<th><?php esc_html_e( 'Enable A/B Testing', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled /> <?php esc_html_e( 'Automatically split test email subject lines and templates', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Test Metric', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select disabled>
+						<option><?php esc_html_e( 'Open Rate', 'flexi-revive-cart' ); ?></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Minimum Sample Size', 'flexi-revive-cart' ); ?></th>
+				<td><input type="number" disabled value="100" class="small-text" /> <span class="description"><?php esc_html_e( 'emails per variant', 'flexi-revive-cart' ); ?></span></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Variant A – Subject', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'You left something behind!', 'flexi-revive-cart' ); ?>" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Variant B – Subject', 'flexi-revive-cart' ); ?></th>
+				<td><input type="text" disabled class="regular-text" placeholder="<?php esc_attr_e( 'Your cart misses you 🛒', 'flexi-revive-cart' ); ?>" /></td>
+			</tr>
+			<tr>
+				<th><?php esc_html_e( 'Auto-select Winner', 'flexi-revive-cart' ); ?></th>
+				<td><label><input type="checkbox" disabled checked /> <?php esc_html_e( 'Automatically use the winning variant after the test completes', 'flexi-revive-cart' ); ?></label></td>
+			</tr>
+		</table>
 		<?php
 	}
 }
