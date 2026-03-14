@@ -54,8 +54,10 @@ class FRC_Discount_Manager {
 		$exclude_category_ids_raw = get_option( 'frc_exclude_category_ids', '' );
 		$exclude_category_ids     = array_filter( array_map( 'absint', explode( ',', $exclude_category_ids_raw ) ) );
 
-		// Expiry date computed from "days from now".
-		$expiry_date = gmdate( 'Y-m-d', strtotime( '+' . $expiry_days . ' days' ) );
+		// Expiry date computed dynamically from value + unit.
+		$expiry_unit    = get_option( 'frc_coupon_expiry_unit', 'days' );
+		$expiry_seconds = FRC_Helpers::convert_to_seconds( $expiry_days, $expiry_unit );
+		$expiry_date    = gmdate( 'Y-m-d', time() + $expiry_seconds );
 
 		// ── Build coupon ──────────────────────────────────────────────────
 		$coupon = new WC_Coupon();

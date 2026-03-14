@@ -625,12 +625,34 @@ class FRC_Email_Templates {
 			'discount_expiry',
 		);
 
+		$pro_only = array(
+			'cart_expiry',
+			'low_stock_alert',
+		);
+
 		// Only incentive/discount templates (stage 3) may use discount placeholders.
 		if ( 'reminder-3' === $template_id ) {
-			return array_merge( $base, $discount );
+			return array_merge( $base, $discount, $pro_only );
+		}
+
+		// Urgency templates (stage 2) may use pro-only placeholders but not discount ones.
+		if ( 'reminder-2' === $template_id ) {
+			return array_merge( $base, $pro_only );
 		}
 
 		return $base;
+	}
+
+	/**
+	 * Return the list of Pro-only placeholder names (without braces).
+	 *
+	 * These placeholders are stripped from templates in the Free version
+	 * and hidden from the email editor UI.
+	 *
+	 * @return array
+	 */
+	public static function get_pro_only_placeholders() {
+		return array( 'discount_code', 'discount_amount', 'discount_expiry', 'cart_expiry', 'low_stock_alert' );
 	}
 
 	/**
@@ -658,9 +680,9 @@ class FRC_Email_Templates {
 			}
 		}
 
-		// In Free version, always strip discount placeholders regardless of template.
+		// In Free version, always strip all Pro-only placeholders regardless of template.
 		if ( ! FRC_PRO_ACTIVE ) {
-			foreach ( $discount as $placeholder ) {
+			foreach ( self::get_pro_only_placeholders() as $placeholder ) {
 				$content = str_replace( '{' . $placeholder . '}', '', $content );
 			}
 		}
