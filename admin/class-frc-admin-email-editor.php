@@ -2,9 +2,13 @@
 /**
  * Email template editor (Free & Pro).
  *
- * Free: Edit email template body for all reminder stages with a WYSIWYG editor
- * and multi-language support (English, Spanish, French, German).
- * Pro: Additional A/B testing and conditional logic features.
+ * Free: Edit only the Friendly Reminder template (reminder-1) subject and body.
+ *       Urgency and Incentive templates are hidden with an upgrade notice.
+ * Pro:  Edit all 3 templates (friendly, urgency, incentive/discount)
+ *       with full subject + body editing and multi-language support.
+ *
+ * Subjects are managed here (unified with template bodies) and support
+ * dynamic placeholders such as {user_name}, {store_name}, {discount_amount}, etc.
  *
  * @package FlexiReviveCart
  */
@@ -29,12 +33,21 @@ class FRC_Admin_Email_Editor {
 		$active_id    = array_key_exists( $active_id, $templates ) ? $active_id : 'reminder-1';
 		$active_lang  = isset( $_GET['lang'] ) ? sanitize_key( wp_unslash( $_GET['lang'] ) ) : 'en'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$active_lang  = array_key_exists( $active_lang, $languages ) ? $active_lang : 'en';
+
+		// In Free version, force the active template to friendly reminder only.
+		if ( ! FRC_PRO_ACTIVE && 'reminder-1' !== $active_id ) {
+			$active_id = 'reminder-1';
+		}
+
 		$saved_key    = 'frc_email_template_' . $active_id . '_' . $active_lang;
+		$subject_key  = 'frc_email_subject_' . $active_id . '_' . $active_lang;
 
 		// Handle save.
 		if ( isset( $_POST['frc_save_template'] ) && check_admin_referer( 'frc_save_email_template' ) ) {
 			$content = isset( $_POST['frc_template_content'] ) ? wp_kses_post( wp_unslash( $_POST['frc_template_content'] ) ) : '';
+			$subject = isset( $_POST['frc_template_subject'] ) ? sanitize_text_field( wp_unslash( $_POST['frc_template_subject'] ) ) : '';
 			update_option( $saved_key, $content );
+			update_option( $subject_key, $subject );
 			// Also update the legacy generic key for English (backwards compat).
 			if ( 'en' === $active_lang ) {
 				update_option( 'frc_email_template_' . $active_id, $content );
@@ -45,6 +58,7 @@ class FRC_Admin_Email_Editor {
 		// Handle reset to default.
 		if ( isset( $_POST['frc_reset_template'] ) && check_admin_referer( 'frc_save_email_template' ) ) {
 			delete_option( $saved_key );
+			delete_option( $subject_key );
 			if ( 'en' === $active_lang ) {
 				delete_option( 'frc_email_template_' . $active_id );
 			}
@@ -56,12 +70,17 @@ class FRC_Admin_Email_Editor {
 		if ( '' === $current_content ) {
 			$current_content = FRC_Email_Templates::get_default_template_content( $active_id, $active_lang );
 		}
+
+		$current_subject = get_option( $subject_key, '' );
+		if ( '' === $current_subject ) {
+			$current_subject = FRC_Email_Templates::get_default_subject( $active_id, $active_lang );
+		}
 		?>
 		<div class="wrap frc-wrap">
 			<h1><?php esc_html_e( 'Email Template Editor', 'flexi-revive-cart' ); ?></h1>
 
 			<p class="description">
-				<?php esc_html_e( 'Customize your abandoned cart email templates. Changes are saved per language. Use the variable buttons to insert dynamic content.', 'flexi-revive-cart' ); ?>
+				<?php esc_html_e( 'Customize your abandoned cart email templates. Subjects and bodies are managed here and saved per language. Use the variable buttons to insert dynamic placeholders into both subjects and bodies.', 'flexi-revive-cart' ); ?>
 			</p>
 
 			<?php if ( FRC_PRO_ACTIVE ) : ?>
@@ -75,12 +94,30 @@ class FRC_Admin_Email_Editor {
 
 			<!-- Template Tabs -->
 			<nav class="nav-tab-wrapper">
-				<?php foreach ( $templates as $id => $tmpl ) : ?>
+				<?php foreach ( $templates as $id => $tmpl ) :
+					$is_pro_template = ( 'reminder-1' !== $id );
+					$is_locked       = ( $is_pro_template && ! FRC_PRO_ACTIVE );
+				?>
+				<?php if ( ! $is_locked ) : ?>
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=frc-email-editor&template=' . $id . '&lang=' . $active_lang ) ); ?>" class="nav-tab <?php echo ( $id === $active_id ) ? 'nav-tab-active' : ''; ?>">
 					<?php echo esc_html( $tmpl['name'] ); ?>
 				</a>
+				<?php else : ?>
+				<span class="nav-tab" style="color:#999;cursor:default;" title="<?php esc_attr_e( 'Upgrade to Pro for this template', 'flexi-revive-cart' ); ?>">
+					<?php echo esc_html( $tmpl['name'] ); ?> 🔒
+				</span>
+				<?php endif; ?>
 				<?php endforeach; ?>
 			</nav>
+
+			<?php if ( ! FRC_PRO_ACTIVE ) : ?>
+			<div class="notice notice-warning inline" style="margin-top:10px;">
+				<p>
+					<?php esc_html_e( 'Urgency and Incentive/Discount templates require a Pro license. Upgrade to Pro to edit all templates, send urgency/discount emails, and use coupon features.', 'flexi-revive-cart' ); ?>
+					<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank"><strong><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></strong></a>
+				</p>
+			</div>
+			<?php endif; ?>
 
 			<form method="post">
 				<?php wp_nonce_field( 'frc_save_email_template' ); ?>
@@ -112,6 +149,18 @@ class FRC_Admin_Email_Editor {
 							&mdash;
 							<?php echo esc_html( $languages[ $active_lang ] ); ?>
 						</h3>
+
+						<!-- Email Subject Field -->
+						<div style="margin-bottom:16px;">
+							<label for="frc_template_subject"><strong><?php esc_html_e( 'Email Subject:', 'flexi-revive-cart' ); ?></strong></label>
+							<input type="text" id="frc_template_subject" name="frc_template_subject"
+								value="<?php echo esc_attr( $current_subject ); ?>"
+								class="large-text"
+								placeholder="<?php esc_attr_e( 'e.g. Hi {user_name}, your cart is waiting!', 'flexi-revive-cart' ); ?>" />
+							<p class="description">
+								<?php esc_html_e( 'Dynamic placeholders like {user_name}, {store_name}, {discount_code}, {discount_amount}, {cart_total}, {abandoned_time} are supported in subjects.', 'flexi-revive-cart' ); ?>
+							</p>
+						</div>
 
 						<!-- Variable Insertion Buttons -->
 						<div class="frc-var-buttons" style="margin-bottom:12px;">
@@ -149,6 +198,9 @@ class FRC_Admin_Email_Editor {
 						<div class="postbox">
 							<div class="postbox-header"><h2 class="hndle"><?php esc_html_e( 'Available Variables', 'flexi-revive-cart' ); ?></h2></div>
 							<div class="inside">
+								<p style="font-size:12px;margin-top:0;">
+									<?php esc_html_e( 'These variables work in both subjects and email bodies.', 'flexi-revive-cart' ); ?>
+								</p>
 								<table class="widefat striped" style="font-size:12px;">
 									<tbody>
 										<tr><td><code>{user_name}</code></td><td><?php esc_html_e( 'Customer first name', 'flexi-revive-cart' ); ?></td></tr>
@@ -177,7 +229,7 @@ class FRC_Admin_Email_Editor {
 						<div class="postbox">
 							<div class="postbox-header"><h2 class="hndle"><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></h2></div>
 							<div class="inside">
-								<p style="font-size:12px;"><?php esc_html_e( 'Pro unlocks A/B testing, conditional logic, SMS/WhatsApp messages, and advanced analytics.', 'flexi-revive-cart' ); ?></p>
+								<p style="font-size:12px;"><?php esc_html_e( 'Pro unlocks urgency/incentive templates, A/B testing, conditional logic, SMS/WhatsApp messages, coupon features, and advanced analytics.', 'flexi-revive-cart' ); ?></p>
 								<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" class="button button-primary"><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></a>
 							</div>
 						</div>

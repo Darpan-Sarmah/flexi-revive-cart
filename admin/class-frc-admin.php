@@ -297,6 +297,9 @@ class FRC_Admin {
 
 	/**
 	 * AJAX: Send a test email.
+	 *
+	 * In Free version, only stage 1 (Friendly Reminder) test emails are allowed.
+	 * Pro allows test emails for all stages.
 	 */
 	public function ajax_send_test_email() {
 		check_ajax_referer( 'frc_admin_nonce', 'nonce' );
@@ -308,7 +311,12 @@ class FRC_Admin {
 
 		$to      = isset( $_POST['to'] ) ? sanitize_email( wp_unslash( $_POST['to'] ) ) : get_option( 'admin_email' );
 		$stage   = isset( $_POST['stage'] ) ? absint( wp_unslash( $_POST['stage'] ) ) : 1;
-		$subject = __( '[Test] Cart Recovery Email', 'flexi-revive-cart' );
+
+		// Free version: force stage to 1 (only friendly reminder test emails allowed).
+		if ( ! FRC_PRO_ACTIVE && $stage > 1 ) {
+			wp_send_json_error( array( 'message' => __( 'Test emails for urgency and incentive templates require a Pro license. Only friendly reminder test emails are available in the Free version.', 'flexi-revive-cart' ) ) );
+			return;
+		}
 
 		// Create a mock cart for preview.
 		$mock = (object) array(
@@ -325,8 +333,17 @@ class FRC_Admin {
 			'discount_code'  => '',
 		);
 
-		$vars = FRC_Email_Templates::build_vars( $mock );
-		$body = FRC_Email_Templates::render( 'reminder-' . $stage, $vars );
+		$template_id = 'reminder-' . $stage;
+		$vars        = FRC_Email_Templates::build_vars( $mock );
+		$body        = FRC_Email_Templates::render( $template_id, $vars );
+
+		// Get subject from the unified template subject storage (with placeholder replacement).
+		$subject = FRC_Email_Templates::get_subject( $template_id, 'en', $vars );
+		if ( empty( $subject ) ) {
+			$subject = __( '[Test] Cart Recovery Email', 'flexi-revive-cart' );
+		} else {
+			$subject = '[Test] ' . $subject;
+		}
 
 		$sent = wp_mail(
 			$to,

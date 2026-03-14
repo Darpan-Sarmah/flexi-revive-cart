@@ -203,6 +203,76 @@ class FRC_Email_Templates {
 	}
 
 	/**
+	 * Get the email subject for a given template, language, and variable replacement.
+	 *
+	 * Checks for a saved custom subject (language-specific) first, then falls back
+	 * to the built-in default subject for that template and language.
+	 *
+	 * @param string $template_id Template ID (e.g. 'reminder-1').
+	 * @param string $lang        Language code: en, es, fr, de.
+	 * @param array  $vars        Optional associative array of variable replacements for dynamic placeholders.
+	 * @return string Subject line with placeholders replaced.
+	 */
+	public static function get_subject( $template_id, $lang = 'en', $vars = array() ) {
+		$lang    = in_array( $lang, array( 'en', 'es', 'fr', 'de' ), true ) ? $lang : 'en';
+		$key     = 'frc_email_subject_' . $template_id . '_' . $lang;
+		$subject = get_option( $key, '' );
+
+		if ( '' === $subject ) {
+			$subject = self::get_default_subject( $template_id, $lang );
+		}
+
+		if ( ! empty( $vars ) ) {
+			$subject = self::replace_vars( $subject, $vars );
+		}
+
+		return $subject;
+	}
+
+	/**
+	 * Return the default email subject for a given template and language.
+	 *
+	 * @param string $template_id Template ID (e.g. 'reminder-1').
+	 * @param string $lang        Language code: en, es, fr, de.
+	 * @return string Default subject line.
+	 */
+	public static function get_default_subject( $template_id, $lang = 'en' ) {
+		$lang = in_array( $lang, array( 'en', 'es', 'fr', 'de' ), true ) ? $lang : 'en';
+
+		$defaults = array(
+			'reminder-1' => array(
+				'en' => __( 'Hi {user_name}, you left something behind at {store_name}!', 'flexi-revive-cart' ),
+				'es' => __( 'Hola {user_name}, dejaste algo en {store_name}!', 'flexi-revive-cart' ),
+				'fr' => __( 'Bonjour {user_name}, vous avez oublié quelque chose chez {store_name} !', 'flexi-revive-cart' ),
+				'de' => __( 'Hallo {user_name}, Sie haben etwas bei {store_name} vergessen!', 'flexi-revive-cart' ),
+			),
+			'reminder-2' => array(
+				'en' => __( '{user_name}, your cart at {store_name} is waiting – items may sell out!', 'flexi-revive-cart' ),
+				'es' => __( '{user_name}, tu carrito en {store_name} te espera – ¡los artículos pueden agotarse!', 'flexi-revive-cart' ),
+				'fr' => __( '{user_name}, votre panier chez {store_name} vous attend – les articles peuvent s\'épuiser !', 'flexi-revive-cart' ),
+				'de' => __( '{user_name}, Ihr Warenkorb bei {store_name} wartet – Artikel können ausverkauft sein!', 'flexi-revive-cart' ),
+			),
+			'reminder-3' => array(
+				'en' => __( '{user_name}, here\'s {discount_amount} off your cart at {store_name}!', 'flexi-revive-cart' ),
+				'es' => __( '{user_name}, ¡aquí tienes {discount_amount} de descuento en {store_name}!', 'flexi-revive-cart' ),
+				'fr' => __( '{user_name}, voici {discount_amount} de réduction chez {store_name} !', 'flexi-revive-cart' ),
+				'de' => __( '{user_name}, hier sind {discount_amount} Rabatt bei {store_name}!', 'flexi-revive-cart' ),
+			),
+		);
+
+		if ( isset( $defaults[ $template_id ][ $lang ] ) ) {
+			return $defaults[ $template_id ][ $lang ];
+		}
+
+		// Fall back to English.
+		if ( isset( $defaults[ $template_id ]['en'] ) ) {
+			return $defaults[ $template_id ]['en'];
+		}
+
+		return '';
+	}
+
+	/**
 	 * Return the default (pre-loaded) template body HTML for a given template and language.
 	 *
 	 * These are simple, editable starting-point templates without PHP logic.
