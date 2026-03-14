@@ -268,7 +268,7 @@ class FRC_Helpers {
 	 * @return array
 	 */
 	public static function get_free_time_units() {
-		return array( 'seconds', 'minutes', 'hours', 'days' );
+		return array( 'seconds', 'minutes', 'hours', 'days', 'weeks', 'months' );
 	}
 
 	/**
@@ -277,7 +277,7 @@ class FRC_Helpers {
 	 * @return array
 	 */
 	public static function get_pro_time_units() {
-		return array( 'weeks', 'months', 'years' );
+		return array( 'years' );
 	}
 
 	/**

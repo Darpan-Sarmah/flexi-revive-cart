@@ -635,9 +635,9 @@ class FRC_Email_Templates {
 			return array_merge( $base, $discount, $pro_only );
 		}
 
-		// Urgency templates (stage 2) may use pro-only placeholders but not discount ones.
+		// Urgency templates (stage 2) only use base placeholders (no Pro-only).
 		if ( 'reminder-2' === $template_id ) {
-			return array_merge( $base, $pro_only );
+			return $base;
 		}
 
 		return $base;
@@ -658,22 +658,21 @@ class FRC_Email_Templates {
 	/**
 	 * Validate and sanitize placeholders in email content based on template type.
 	 *
-	 * Pro-only discount placeholders are stripped from non-incentive templates.
-	 * In Free version, discount placeholders are always replaced with empty strings.
+	 * Pro-only placeholders are stripped from non-Incentive templates (Friendly/Urgency).
+	 * In Free version, all Pro-only placeholders are always replaced with empty strings.
 	 *
 	 * @param string $content     Email body or subject.
 	 * @param string $template_id Template ID.
 	 * @return string Sanitized content.
 	 */
 	public static function validate_placeholders( $content, $template_id ) {
-		$allowed  = self::get_allowed_placeholders( $template_id );
-		$discount = array( 'discount_code', 'discount_amount', 'discount_expiry' );
+		$allowed = self::get_allowed_placeholders( $template_id );
 
-		foreach ( $discount as $placeholder ) {
+		// Strip all Pro-only placeholders that are not allowed for this template type.
+		foreach ( self::get_pro_only_placeholders() as $placeholder ) {
 			if ( in_array( $placeholder, $allowed, true ) ) {
 				continue;
 			}
-			// Strip disallowed discount placeholders.
 			if ( strpos( $content, '{' . $placeholder . '}' ) !== false ) {
 				self::log_missing_translation( 'Invalid placeholder {' . $placeholder . '} in template ' . $template_id . ' – stripped.' );
 				$content = str_replace( '{' . $placeholder . '}', '', $content );
