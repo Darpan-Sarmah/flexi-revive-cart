@@ -1,0 +1,84 @@
+# Hindi translation for Flexi Revive Cart
+# Copyright (C) 2024 Darpan Sarmah
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Flexi Revive Cart 1.0.0\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Last-Translator: Darpan Sarmah\n"
+"Language-Team: Hindi\n"
+"Language: hi_IN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: flexi-revive-cart\n"
+
+msgid "You left something behind!"
+msgstr "आपने कुछ छोड़ दिया है!"
+
+msgid "Your cart is waiting – items may sell out!"
+msgstr "आपकी कार्ट आपका इंतज़ार कर रही है – उत्पाद बिक सकते हैं!"
+
+msgid "Here's a special offer to complete your purchase!"
+msgstr "अपनी खरीदारी पूरी करने के लिए यहाँ एक विशेष ऑफ़र है!"
+
+msgid "Complete Your Purchase"
+msgstr "अपनी खरीदारी पूरी करें"
+
+msgid "Unsubscribe"
+msgstr "सदस्यता रद्द करें"
+
+msgid "Wait! Don't leave your cart behind."
+msgstr "रुकिए! अपनी कार्ट को मत छोड़िए।"
+
+msgid "Save My Cart"
+msgstr "मेरी कार्ट सहेजें"
+
+msgid "Enter your email and we'll save your cart so you can complete your purchase later."
+msgstr "अपना ई-मेल दर्ज करें और हम आपकी कार्ट सहेज लेंगे ताकि आप बाद में अपनी खरीदारी पूरी कर सकें।"
+
+msgid "No thanks, I don't want to save my cart."
+msgstr "नहीं धन्यवाद, मैं अपनी कार्ट सहेजना नहीं चाहता/चाहती।"
+
+msgid "Your cart has been restored! Complete your purchase below."
+msgstr "आपकी कार्ट पुनर्स्थापित कर दी गई है! नीचे अपनी खरीदारी पूरी करें।"
+
+msgid "You have been successfully unsubscribed from cart reminder emails."
+msgstr "आपने कार्ट रिमाइंडर ई-मेल से सफलतापूर्वक सदस्यता रद्द कर दी है।"
+
+msgid "Discount code expires in 72 hours."
+msgstr "छूट कोड 72 घंटों में समाप्त हो जाएगा।"
+
+msgid "Claim My Discount"
+msgstr "मेरी छूट प्राप्त करें"
+
+msgid "Last chance to complete your purchase!"
+msgstr "अपनी खरीदारी पूरी करने का आखिरी मौका!"
+
+msgid "Restoring your cart…"
+msgstr "आपकी कार्ट पुनर्स्थापित हो रही है…"
+
+msgid "Continue to Checkout"
+msgstr "चेकआउट पर जाएँ"
+
+msgid "Abandoned Carts"
+msgstr "छोड़ी गई कार्ट"
+
+msgid "Dashboard"
+msgstr "डैशबोर्ड"
+
+msgid "Settings"
+msgstr "सेटिंग्स"
+
+msgid "Upgrade to Pro"
+msgstr "प्रो में अपग्रेड करें"
+
+msgid "Recovery Rate"
+msgstr "पुनर्प्राप्ति दर"
+
+msgid "Revenue Recovered"
+msgstr "पुनर्प्राप्त राजस्व"
+
+msgid "Revenue Lost"
+msgstr "खोया हुआ राजस्व"
