@@ -45,7 +45,7 @@ class FRC_Admin_Settings {
 
 		// Email.
 		register_setting( 'frc_email', 'frc_enable_email_reminders', array( 'sanitize_callback' => 'absint', 'default' => 1 ) );
-		register_setting( 'frc_email', 'frc_num_reminders', array( 'sanitize_callback' => 'absint', 'default' => 3 ) );
+		register_setting( 'frc_email', 'frc_num_reminders', array( 'sanitize_callback' => array( $this, 'sanitize_num_reminders' ), 'default' => 3 ) );
 		register_setting( 'frc_email', 'frc_reminder_interval', array( 'sanitize_callback' => 'absint', 'default' => 1 ) );
 		register_setting( 'frc_email', 'frc_reminder_interval_unit', array( 'sanitize_callback' => array( 'FRC_Helpers', 'sanitize_time_unit' ), 'default' => 'hours' ) );
 		register_setting( 'frc_email', 'frc_reminder_type', array( 'sanitize_callback' => array( $this, 'sanitize_reminder_type' ) ) );
@@ -261,6 +261,25 @@ class FRC_Admin_Settings {
 			return array( 1, 1, 1 );
 		}
 		return array_map( 'absint', $value );
+	}
+
+	/**
+	 * Sanitize the number of reminders.
+	 *
+	 * Free version is capped at 3 reminders.
+	 *
+	 * @param mixed $value Input value.
+	 * @return int
+	 */
+	public function sanitize_num_reminders( $value ) {
+		$value = absint( $value );
+		if ( $value < 1 ) {
+			$value = 1;
+		}
+		if ( ! FRC_PRO_ACTIVE && $value > 3 ) {
+			$value = 3;
+		}
+		return $value;
 	}
 
 	/**
@@ -498,7 +517,7 @@ class FRC_Admin_Settings {
 			<tr>
 				<th><?php esc_html_e( 'Number of Reminders', 'flexi-revive-cart' ); ?></th>
 				<td>
-					<input type="number" id="frc-num-reminders" name="frc_num_reminders" value="<?php echo esc_attr( $num_reminders ); ?>" class="small-text" />
+					<input type="number" id="frc-num-reminders" name="frc_num_reminders" value="<?php echo esc_attr( $num_reminders ); ?>" min="1" <?php if ( ! FRC_PRO_ACTIVE ) : ?>max="3"<?php endif; ?> class="small-text" />
 					<?php if ( ! FRC_PRO_ACTIVE ) : ?>
 					<p class="description"><?php esc_html_e( 'Free version allows up to 3 friendly reminders. Upgrade to Pro for unlimited reminders.', 'flexi-revive-cart' ); ?></p>
 					<?php else : ?>

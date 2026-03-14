@@ -184,7 +184,11 @@ class FRC_Admin_Email_Editor {
 								class="large-text"
 								placeholder="<?php esc_attr_e( 'e.g. Hi {user_name}, your cart is waiting!', 'flexi-revive-cart' ); ?>" />
 							<p class="description">
+								<?php if ( FRC_PRO_ACTIVE ) : ?>
 								<?php esc_html_e( 'Dynamic placeholders like {user_name}, {store_name}, {discount_code}, {discount_amount}, {cart_total}, {abandoned_time} are supported in subjects.', 'flexi-revive-cart' ); ?>
+								<?php else : ?>
+								<?php esc_html_e( 'Dynamic placeholders like {user_name}, {store_name}, {cart_total}, {abandoned_time} are supported in subjects.', 'flexi-revive-cart' ); ?>
+								<?php endif; ?>
 							</p>
 						</div>
 
