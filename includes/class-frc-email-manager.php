@@ -64,12 +64,7 @@ class FRC_Email_Manager {
 		}
 
 		// Map reminder type to template ID.
-		$type_to_template = array(
-			'friendly'  => 'reminder-1',
-			'urgency'   => 'reminder-2',
-			'incentive' => 'reminder-3',
-		);
-		$template_id = isset( $type_to_template[ $reminder_type ] ) ? $type_to_template[ $reminder_type ] : 'reminder-1';
+		$template_id = FRC_Email_Templates::get_template_id_for_type( $reminder_type );
 
 		// Generate discount code for incentive reminders (Pro only).
 		$discount_code   = '';

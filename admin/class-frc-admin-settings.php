@@ -425,7 +425,7 @@ class FRC_Admin_Settings {
 		$num_reminders    = (int) get_option( 'frc_num_reminders', 3 );
 		$reminder_types   = get_option( 'frc_reminder_types', array( 'friendly', 'urgency', 'incentive' ) );
 		$reminder_enabled = get_option( 'frc_reminder_enabled', array( 1, 1, 1 ) );
-		$max_reminders    = FRC_PRO_ACTIVE ? 999 : 3;
+		$max_reminders    = FRC_PRO_ACTIVE ? 0 : 3;
 		?>
 		<table class="form-table">
 			<tr>
@@ -435,7 +435,7 @@ class FRC_Admin_Settings {
 			<tr>
 				<th><?php esc_html_e( 'Number of Reminders', 'flexi-revive-cart' ); ?></th>
 				<td>
-					<input type="number" id="frc-num-reminders" name="frc_num_reminders" value="<?php echo esc_attr( $num_reminders ); ?>" min="1" max="<?php echo esc_attr( $max_reminders ); ?>" class="small-text" />
+					<input type="number" id="frc-num-reminders" name="frc_num_reminders" value="<?php echo esc_attr( $num_reminders ); ?>" min="1" <?php if ( $max_reminders > 0 ) : ?>max="<?php echo esc_attr( $max_reminders ); ?>"<?php endif; ?> class="small-text" />
 					<?php if ( ! FRC_PRO_ACTIVE ) : ?>
 					<p class="description"><?php esc_html_e( 'Free version allows up to 3 friendly reminders. Upgrade to Pro for urgency/incentive emails and unlimited reminders.', 'flexi-revive-cart' ); ?></p>
 					<?php else : ?>
@@ -483,7 +483,9 @@ class FRC_Admin_Settings {
 			<?php
 			$default_intervals = array( 1, 6, 24, 48, 72, 96, 120, 144, 168, 192 );
 			$display_count     = max( $num_reminders, count( $intervals ) );
-			$display_count     = min( $display_count, $max_reminders );
+			if ( $max_reminders > 0 ) {
+				$display_count = min( $display_count, $max_reminders );
+			}
 
 			$type_labels = array(
 				'friendly'  => __( 'Friendly Reminder', 'flexi-revive-cart' ),
