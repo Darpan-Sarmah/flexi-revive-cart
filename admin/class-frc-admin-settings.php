@@ -118,7 +118,15 @@ class FRC_Admin_Settings {
 		if ( ! is_array( $value ) ) {
 			return array( 'friendly', 'friendly', 'friendly' );
 		}
-		$allowed = array( 'friendly', 'urgency', 'incentive' );
+		$allowed = array( 'friendly' );
+		/**
+		 * Filters the allowed reminder type values for sanitization.
+		 *
+		 * Pro can add 'urgency', 'incentive', etc.
+		 *
+		 * @param array $allowed List of allowed type strings.
+		 */
+		$allowed = apply_filters( 'frc_allowed_reminder_types', $allowed );
 		return array_map(
 			function ( $v ) use ( $allowed ) {
 				$v = sanitize_text_field( $v );
@@ -136,7 +144,9 @@ class FRC_Admin_Settings {
 	 */
 	public function sanitize_reminder_type( $value ) {
 		$value   = sanitize_text_field( $value );
-		$allowed = array( 'friendly', 'urgency', 'incentive' );
+		$allowed = array( 'friendly' );
+		/** This filter is documented in sanitize_reminder_types(). */
+		$allowed = apply_filters( 'frc_allowed_reminder_types', $allowed );
 		return in_array( $value, $allowed, true ) ? $value : 'friendly';
 	}
 
