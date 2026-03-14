@@ -1043,7 +1043,7 @@ class FRC_Admin_Settings {
 	/**
 	 * Render a time unit dropdown selector.
 	 *
-	 * Pro-only units (weeks, months, years) are shown as disabled options in the Free version.
+	 * Pro-only units (years) are shown as disabled options in the Free version.
 	 *
 	 * @param string $name         The option name for the select element.
 	 * @param string $current_unit Current selected unit value.
