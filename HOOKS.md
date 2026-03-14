@@ -124,6 +124,19 @@ add_action( 'frc_admin_enqueue_scripts', function( $hook ) {
 });
 ```
 
+### `frc_dashboard_after_charts` (Action)
+
+**When It Fires:** After the dashboard charts grid is rendered.
+
+```php
+add_action( 'frc_dashboard_after_charts', function() {
+    echo '<div class="frc-pro-section">';
+    echo '<h2>' . esc_html__( 'A/B Test Summary', 'flexi-revive-cart-pro' ) . '</h2>';
+    // Render A/B test results table...
+    echo '</div>';
+});
+```
+
 ### `frc_test_email_stages` (Action)
 
 **When It Fires:** When rendering the test email stage dropdown options.
