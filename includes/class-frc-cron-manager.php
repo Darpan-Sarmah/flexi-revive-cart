@@ -104,7 +104,9 @@ class FRC_Cron_Manager {
 			}
 
 			// Expire carts after the last reminder + 24h buffer.
-			$max_reminders_count = FRC_PRO_ACTIVE ? (int) get_option( 'frc_num_reminders', 3 ) : min( (int) get_option( 'frc_num_reminders', 3 ), 3 );
+			/** This filter is documented in class-frc-admin-settings.php */
+			$max_reminders_count = apply_filters( 'frc_max_reminders', 3 );
+			$max_reminders_count = min( (int) get_option( 'frc_num_reminders', 3 ), $max_reminders_count );
 			$expire_after        = ( $interval_seconds * $max_reminders_count ) + DAY_IN_SECONDS;
 			if ( ( time() - strtotime( $cart->abandoned_at ) ) > $expire_after ) {
 				$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
@@ -128,7 +130,8 @@ class FRC_Cron_Manager {
 	private function get_due_stage( $cart, $interval_seconds ) {
 		$emails_sent   = (int) $cart->emails_sent;
 		$next_stage    = $emails_sent + 1;
-		$max_reminders = FRC_PRO_ACTIVE ? (int) get_option( 'frc_num_reminders', 3 ) : min( (int) get_option( 'frc_num_reminders', 3 ), 3 );
+		/** This filter is documented in class-frc-admin-settings.php */
+		$max_reminders = min( (int) get_option( 'frc_num_reminders', 3 ), apply_filters( 'frc_max_reminders', 3 ) );
 
 		if ( $next_stage > $max_reminders ) {
 			return false;
@@ -165,17 +168,15 @@ class FRC_Cron_Manager {
 			$email_manager->send_reminder( $cart, $stage );
 		}
 
-		// Dispatch SMS when enabled (Pro).
-		if ( FRC_PRO_ACTIVE && get_option( 'frc_enable_sms', '0' ) && class_exists( 'FRC_SMS_Manager' ) ) {
-			$sms = new FRC_SMS_Manager();
-			$sms->send_sms( $cart, $stage );
-		}
-
-		// Dispatch Push notifications when enabled (Pro).
-		if ( FRC_PRO_ACTIVE && get_option( 'frc_enable_push', '0' ) && class_exists( 'FRC_Push_Manager' ) ) {
-			$push = new FRC_Push_Manager();
-			$push->send_push( $cart, $stage );
-		}
+		/**
+		 * Fires after the core email reminder is dispatched for a cart.
+		 *
+		 * Pro add-ons should hook here to send SMS, WhatsApp, or push notifications.
+		 *
+		 * @param object $cart  The cart database row.
+		 * @param int    $stage The reminder stage number.
+		 */
+		do_action( 'frc_dispatch_reminder', $cart, $stage );
 	}
 
 	/**

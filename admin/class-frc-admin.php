@@ -26,12 +26,6 @@ class FRC_Admin {
 		add_action( 'wp_ajax_frc_get_chart_data', array( $this, 'ajax_get_chart_data' ) );
 		add_action( 'wp_ajax_frc_delete_cart', array( $this, 'ajax_delete_cart' ) );
 		add_action( 'wp_ajax_frc_resend_reminder', array( $this, 'ajax_resend_reminder' ) );
-		add_action( 'wp_ajax_frc_send_whatsapp_bulk', array( $this, 'ajax_send_whatsapp_bulk' ) );
-
-		// CSV export download (Pro) – runs before headers are sent.
-		if ( FRC_PRO_ACTIVE && class_exists( 'FRC_Export' ) ) {
-			add_action( 'admin_init', array( 'FRC_Export', 'handle_export_request' ) );
-		}
 	}
 
 	/**
@@ -85,34 +79,15 @@ class FRC_Admin {
 			array( $this, 'render_settings' )
 		);
 
-		if ( FRC_PRO_ACTIVE ) {
-			add_submenu_page(
-				'flexi-revive-cart',
-				__( 'A/B Test Results', 'flexi-revive-cart' ),
-				__( 'A/B Results', 'flexi-revive-cart' ),
-				'manage_woocommerce',
-				'frc-ab-results',
-				array( $this, 'render_ab_results' )
-			);
-
-			add_submenu_page(
-				'flexi-revive-cart',
-				__( 'WhatsApp Campaigns', 'flexi-revive-cart' ),
-				__( 'WhatsApp (Pro)', 'flexi-revive-cart' ),
-				'manage_woocommerce',
-				'frc-whatsapp',
-				array( $this, 'render_whatsapp' )
-			);
-
-			add_submenu_page(
-				'flexi-revive-cart',
-				__( 'Recovery Analytics', 'flexi-revive-cart' ),
-				__( 'Analytics (Pro)', 'flexi-revive-cart' ),
-				'manage_woocommerce',
-				'frc-analytics',
-				array( $this, 'render_analytics' )
-			);
-		}
+		/**
+		 * Fires after core admin menu items are registered.
+		 *
+		 * Pro add-ons can use this hook to add their own submenu pages
+		 * (e.g., A/B Results, WhatsApp Campaigns, Analytics).
+		 *
+		 * @param string $parent_slug The parent menu slug ('flexi-revive-cart').
+		 */
+		do_action( 'frc_admin_menu', 'flexi-revive-cart' );
 	}
 
 	/**
@@ -126,10 +101,16 @@ class FRC_Admin {
 			'flexi-revive_page_frc-carts',
 			'flexi-revive_page_frc-settings',
 			'flexi-revive_page_frc-email-editor',
-			'flexi-revive_page_frc-ab-results',
-			'flexi-revive_page_frc-whatsapp',
-			'flexi-revive_page_frc-analytics',
 		);
+
+		/**
+		 * Filters the list of admin page hooks where FRC assets are loaded.
+		 *
+		 * Pro add-ons can append their own page hooks so FRC styles/scripts load there too.
+		 *
+		 * @param array $frc_pages Array of admin page hook suffixes.
+		 */
+		$frc_pages = apply_filters( 'frc_admin_page_hooks', $frc_pages );
 
 		if ( ! in_array( $hook, $frc_pages, true ) ) {
 			return;
@@ -192,6 +173,13 @@ class FRC_Admin {
 				)
 			);
 		}
+
+		/**
+		 * Fires after core admin scripts are enqueued on FRC pages.
+		 *
+		 * @param string $hook Current admin page hook.
+		 */
+		do_action( 'frc_admin_enqueue_scripts', $hook );
 	}
 
 	/**
@@ -244,7 +232,7 @@ class FRC_Admin {
 	}
 
 	/**
-	 * Render the email editor page (Free & Pro).
+	 * Render the email editor page.
 	 */
 	public function render_email_editor() {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
@@ -253,45 +241,6 @@ class FRC_Admin {
 		if ( class_exists( 'FRC_Admin_Email_Editor' ) ) {
 			$editor = new FRC_Admin_Email_Editor();
 			$editor->render();
-		}
-	}
-
-	/**
-	 * Render the A/B test results page (Pro).
-	 */
-	public function render_ab_results() {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_die( esc_html__( 'You do not have permission to view this page.', 'flexi-revive-cart' ) );
-		}
-		if ( FRC_PRO_ACTIVE && class_exists( 'FRC_Admin_AB_Results' ) ) {
-			$results = new FRC_Admin_AB_Results();
-			$results->render();
-		}
-	}
-
-	/**
-	 * Render the WhatsApp bulk campaigns page (Pro).
-	 */
-	public function render_whatsapp() {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_die( esc_html__( 'You do not have permission to view this page.', 'flexi-revive-cart' ) );
-		}
-		if ( FRC_PRO_ACTIVE && class_exists( 'FRC_Admin_WhatsApp' ) ) {
-			$page = new FRC_Admin_WhatsApp();
-			$page->render();
-		}
-	}
-
-	/**
-	 * Render the recovery analytics page (Pro).
-	 */
-	public function render_analytics() {
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_die( esc_html__( 'You do not have permission to view this page.', 'flexi-revive-cart' ) );
-		}
-		if ( FRC_PRO_ACTIVE && class_exists( 'FRC_Admin_Analytics' ) ) {
-			$page = new FRC_Admin_Analytics();
-			$page->render();
 		}
 	}
 
@@ -322,9 +271,18 @@ class FRC_Admin {
 		}
 		$lang = FRC_Email_Templates::validate_lang( $lang );
 
-		// Free version: force stage to 1 (only friendly reminder test emails allowed).
-		if ( ! FRC_PRO_ACTIVE && $stage > 1 ) {
-			wp_send_json_error( array( 'message' => __( 'Test emails for urgency and incentive templates require a Pro license. Only friendly reminder test emails are available in the Free version.', 'flexi-revive-cart' ) ) );
+		// Restrict test emails to allowed stages.
+		$allowed_stages = array( 1 );
+
+		/**
+		 * Filters the allowed test email stages.
+		 *
+		 * @param array $allowed_stages Array of allowed stage numbers.
+		 */
+		$allowed_stages = apply_filters( 'frc_test_email_allowed_stages', $allowed_stages );
+
+		if ( ! in_array( $stage, $allowed_stages, true ) ) {
+			wp_send_json_error( array( 'message' => __( 'Install the Pro add-on to send test emails for additional reminder types.', 'flexi-revive-cart' ) ) );
 			return;
 		}
 
@@ -445,46 +403,4 @@ class FRC_Admin {
 		}
 	}
 
-	/**
-	 * AJAX: Send WhatsApp bulk campaign (Pro).
-	 */
-	public function ajax_send_whatsapp_bulk() {
-		check_ajax_referer( 'frc_admin_nonce', 'nonce' );
-
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'flexi-revive-cart' ) ) );
-			return;
-		}
-
-		if ( ! FRC_PRO_ACTIVE ) {
-			wp_send_json_error( array( 'message' => __( 'This feature requires a Pro license.', 'flexi-revive-cart' ) ) );
-			return;
-		}
-
-		$campaign_name   = isset( $_POST['campaign_name'] ) ? sanitize_text_field( wp_unslash( $_POST['campaign_name'] ) ) : __( 'Bulk Campaign', 'flexi-revive-cart' );
-		$message_tpl     = isset( $_POST['message'] ) ? sanitize_textarea_field( wp_unslash( $_POST['message'] ) ) : '';
-		$delay_hours     = isset( $_POST['delay_hours'] ) ? absint( wp_unslash( $_POST['delay_hours'] ) ) : 0;
-
-		if ( empty( $message_tpl ) ) {
-			wp_send_json_error( array( 'message' => __( 'Message template is required.', 'flexi-revive-cart' ) ) );
-			return;
-		}
-
-		if ( class_exists( 'FRC_WhatsApp_Manager' ) ) {
-			$manager = new FRC_WhatsApp_Manager();
-			$result  = $manager->send_bulk_campaign( $campaign_name, $message_tpl, $delay_hours );
-			wp_send_json_success( array(
-				'message'    => sprintf(
-					/* translators: %d: number of messages sent */
-					__( 'Bulk campaign sent to %d recipients.', 'flexi-revive-cart' ),
-					$result['sent']
-				),
-				'sent'       => $result['sent'],
-				'failed'     => $result['failed'],
-				'campaign_id' => $result['campaign_id'],
-			) );
-		} else {
-			wp_send_json_error( array( 'message' => __( 'WhatsApp manager not available.', 'flexi-revive-cart' ) ) );
-		}
-	}
 }

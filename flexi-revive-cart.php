@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Flexi Revive Cart - Abandoned Cart Recovery for WooCommerce
  * Plugin URI: https://github.com/Darpan-Sarmah/flexi-revive-cart
- * Description: Recover abandoned carts with email, SMS, push notifications, exit-intent popups, and dynamic discounts. Free and Pro versions available.
+ * Description: Recover abandoned carts with automated email reminders. Extensible Core engine – install the Pro add-on for SMS, push notifications, exit-intent popups, and dynamic discounts.
  * Version: 1.0.0
  * Author: Darpan Sarmah
  * Author URI: https://github.com/Darpan-Sarmah
@@ -29,7 +29,7 @@ define( 'FRC_VERSION', '1.0.0' );
 define( 'FRC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FRC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FRC_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
-define( 'FRC_PRO_ACTIVE', defined( 'FRC_PRO_LICENSE_KEY' ) && ! empty( FRC_PRO_LICENSE_KEY ) );
+define( 'FRC_PRO_ACTIVE', defined( 'FRC_PRO_VERSION' ) );
 
 /**
  * Check if WooCommerce is active.

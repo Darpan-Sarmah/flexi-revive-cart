@@ -35,7 +35,18 @@ class FRC_Admin_Email_Editor {
 		$active_lang  = array_key_exists( $active_lang, $languages ) ? $active_lang : 'en';
 
 		// In Free version, force the active template to friendly reminder only.
-		if ( ! FRC_PRO_ACTIVE && 'reminder-1' !== $active_id ) {
+		$available_templates = array( 'reminder-1' );
+
+		/**
+		 * Filters the template IDs available for editing.
+		 *
+		 * Pro can add 'reminder-2', 'reminder-3', etc.
+		 *
+		 * @param array $available_templates Array of template IDs.
+		 */
+		$available_templates = apply_filters( 'frc_email_template_tabs', $available_templates );
+
+		if ( ! in_array( $active_id, $available_templates, true ) ) {
 			$active_id = 'reminder-1';
 		}
 
@@ -47,9 +58,19 @@ class FRC_Admin_Email_Editor {
 			$content = isset( $_POST['frc_template_content'] ) ? wp_kses_post( wp_unslash( $_POST['frc_template_content'] ) ) : '';
 			$subject = isset( $_POST['frc_template_subject'] ) ? sanitize_text_field( wp_unslash( $_POST['frc_template_subject'] ) ) : '';
 
-			// In Free version, strip Pro-only placeholders and warn the admin.
-			if ( ! FRC_PRO_ACTIVE ) {
-				$pro_placeholders = FRC_Email_Templates::get_pro_only_placeholders();
+			// Strip Pro-only placeholders when Pro add-on is not active.
+			$pro_placeholders = FRC_Email_Templates::get_pro_only_placeholders();
+
+			/**
+			 * Filters the list of Pro-only placeholders.
+			 *
+			 * Pro can return an empty array to allow all placeholders.
+			 *
+			 * @param array $pro_placeholders List of placeholder names that require Pro.
+			 */
+			$pro_placeholders = apply_filters( 'frc_pro_only_placeholders', $pro_placeholders );
+
+			if ( ! empty( $pro_placeholders ) ) {
 				$found_pro = array();
 				foreach ( $pro_placeholders as $pp ) {
 					if ( strpos( $content, '{' . $pp . '}' ) !== false || strpos( $subject, '{' . $pp . '}' ) !== false ) {
@@ -112,7 +133,7 @@ class FRC_Admin_Email_Editor {
 			<div class="notice notice-info inline">
 				<p>
 					<strong><?php esc_html_e( 'Pro:', 'flexi-revive-cart' ); ?></strong>
-					<?php esc_html_e( 'A/B testing and conditional logic (e.g., show discount only for carts over $100) are available via the A/B Results page.', 'flexi-revive-cart' ); ?>
+					<?php esc_html_e( 'A/B testing and conditional logic are available via the Pro add-on.', 'flexi-revive-cart' ); ?>
 				</p>
 			</div>
 			<?php endif; ?>
@@ -120,15 +141,14 @@ class FRC_Admin_Email_Editor {
 			<!-- Template Tabs -->
 			<nav class="nav-tab-wrapper">
 				<?php foreach ( $templates as $id => $tmpl ) :
-					$is_pro_template = ( 'reminder-1' !== $id );
-					$is_locked       = ( $is_pro_template && ! FRC_PRO_ACTIVE );
+					$is_available = in_array( $id, $available_templates, true );
 				?>
-				<?php if ( ! $is_locked ) : ?>
+				<?php if ( $is_available ) : ?>
 				<a href="<?php echo esc_url( admin_url( 'admin.php?page=frc-email-editor&template=' . $id . '&lang=' . $active_lang ) ); ?>" class="nav-tab <?php echo ( $id === $active_id ) ? 'nav-tab-active' : ''; ?>">
 					<?php echo esc_html( $tmpl['name'] ); ?>
 				</a>
 				<?php else : ?>
-				<span class="nav-tab" style="color:#999;cursor:default;" title="<?php esc_attr_e( 'Upgrade to Pro for this template', 'flexi-revive-cart' ); ?>">
+				<span class="nav-tab" style="color:#999;cursor:default;" title="<?php esc_attr_e( 'Install the Pro add-on for this template', 'flexi-revive-cart' ); ?>">
 					<?php echo esc_html( $tmpl['name'] ); ?> 🔒
 				</span>
 				<?php endif; ?>
@@ -138,8 +158,8 @@ class FRC_Admin_Email_Editor {
 			<?php if ( ! FRC_PRO_ACTIVE ) : ?>
 			<div class="notice notice-warning inline" style="margin-top:10px;">
 				<p>
-					<?php esc_html_e( 'Urgency and Incentive/Discount templates require a Pro license. Upgrade to Pro to edit all templates, send urgency/discount emails, and use coupon features.', 'flexi-revive-cart' ); ?>
-					<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" rel="noopener noreferrer"><strong><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></strong></a>
+					<?php esc_html_e( 'Urgency and Incentive/Discount templates require the Pro add-on. Install Flexi Revive Cart Pro to edit all templates, send urgency/discount emails, and use coupon features.', 'flexi-revive-cart' ); ?>
+					<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" rel="noopener noreferrer"><strong><?php esc_html_e( 'Get Pro', 'flexi-revive-cart' ); ?></strong></a>
 				</p>
 			</div>
 			<?php endif; ?>
@@ -184,11 +204,7 @@ class FRC_Admin_Email_Editor {
 								class="large-text"
 								placeholder="<?php esc_attr_e( 'e.g. Hi {user_name}, your cart is waiting!', 'flexi-revive-cart' ); ?>" />
 							<p class="description">
-								<?php if ( FRC_PRO_ACTIVE ) : ?>
-								<?php esc_html_e( 'Dynamic placeholders like {user_name}, {store_name}, {discount_code}, {discount_amount}, {cart_total}, {abandoned_time} are supported in subjects.', 'flexi-revive-cart' ); ?>
-								<?php else : ?>
 								<?php esc_html_e( 'Dynamic placeholders like {user_name}, {store_name}, {cart_total}, {abandoned_time} are supported in subjects.', 'flexi-revive-cart' ); ?>
-								<?php endif; ?>
 							</p>
 						</div>
 
@@ -196,14 +212,20 @@ class FRC_Admin_Email_Editor {
 						<div class="frc-var-buttons" style="margin-bottom:12px;">
 							<strong><?php esc_html_e( 'Insert Variable:', 'flexi-revive-cart' ); ?></strong>
 							<?php
-							$pro_only_vars = FRC_Email_Templates::get_pro_only_placeholders();
-							$vars = array( 'user_name', 'cart_items', 'cart_total', 'recovery_link', 'cart_link', 'discount_code', 'discount_amount', 'discount_expiry', 'store_name', 'abandoned_time', 'unsubscribe_link', 'cart_expiry', 'low_stock_alert' );
+							/** This filter is documented in class-frc-admin-email-editor.php */
+							$pro_only_vars = apply_filters( 'frc_pro_only_placeholders', FRC_Email_Templates::get_pro_only_placeholders() );
+							$vars = array( 'user_name', 'cart_items', 'cart_total', 'recovery_link', 'cart_link', 'store_name', 'abandoned_time', 'unsubscribe_link' );
+
+							/**
+							 * Filters the list of template variables shown in the editor.
+							 *
+							 * Pro can add discount_code, discount_amount, discount_expiry, etc.
+							 *
+							 * @param array $vars Array of variable names.
+							 */
+							$vars = apply_filters( 'frc_email_template_variables', $vars );
+
 							foreach ( $vars as $var ) {
-								$is_pro_var = in_array( $var, $pro_only_vars, true );
-								if ( $is_pro_var && ! FRC_PRO_ACTIVE ) {
-									// Hide Pro-only placeholder buttons in Free version.
-									continue;
-								}
 								echo '<button type="button" class="button button-small frc-insert-var" data-var="{' . esc_attr( $var ) . '}">{' . esc_html( $var ) . '}</button> ';
 							}
 							?>
@@ -244,13 +266,14 @@ class FRC_Admin_Email_Editor {
 										<tr><td><code>{cart_total}</code></td><td><?php esc_html_e( 'Cart total (formatted)', 'flexi-revive-cart' ); ?></td></tr>
 										<tr><td><code>{recovery_link}</code></td><td><?php esc_html_e( 'Cart recovery URL', 'flexi-revive-cart' ); ?></td></tr>
 										<tr><td><code>{cart_link}</code></td><td><?php esc_html_e( 'Same as recovery_link', 'flexi-revive-cart' ); ?></td></tr>
-										<?php if ( FRC_PRO_ACTIVE ) : ?>
-										<tr><td><code>{discount_code}</code></td><td><?php esc_html_e( 'Generated coupon code (Pro)', 'flexi-revive-cart' ); ?></td></tr>
-										<tr><td><code>{discount_amount}</code></td><td><?php esc_html_e( 'Discount percentage (Pro)', 'flexi-revive-cart' ); ?></td></tr>
-										<tr><td><code>{discount_expiry}</code></td><td><?php esc_html_e( 'Coupon expiry date (Pro)', 'flexi-revive-cart' ); ?></td></tr>
-										<tr><td><code>{cart_expiry}</code></td><td><?php esc_html_e( 'Cart expiry countdown (Pro)', 'flexi-revive-cart' ); ?></td></tr>
-										<tr><td><code>{low_stock_alert}</code></td><td><?php esc_html_e( 'Low stock warning (Pro)', 'flexi-revive-cart' ); ?></td></tr>
-										<?php endif; ?>
+										<?php
+										/**
+										 * Fires in the variable reference sidebar.
+										 *
+										 * Pro can add rows for discount_code, discount_amount, etc.
+										 */
+										do_action( 'frc_email_editor_variable_reference' );
+										?>
 										<tr><td><code>{store_name}</code></td><td><?php esc_html_e( 'Your store name', 'flexi-revive-cart' ); ?></td></tr>
 										<tr><td><code>{abandoned_time}</code></td><td><?php esc_html_e( 'Time since abandonment', 'flexi-revive-cart' ); ?></td></tr>
 										<tr><td><code>{unsubscribe_link}</code></td><td><?php esc_html_e( 'Opt-out URL', 'flexi-revive-cart' ); ?></td></tr>
@@ -259,19 +282,21 @@ class FRC_Admin_Email_Editor {
 							</div>
 						</div>
 
-						<?php if ( FRC_PRO_ACTIVE ) : ?>
+						<?php
+						/**
+						 * Fires in the email editor sidebar.
+						 *
+						 * Pro can add conditional logic, A/B testing info boxes, etc.
+						 */
+						do_action( 'frc_email_editor_sidebar' );
+						?>
+
+						<?php if ( ! FRC_PRO_ACTIVE ) : ?>
 						<div class="postbox">
-							<div class="postbox-header"><h2 class="hndle"><?php esc_html_e( 'Pro: Conditional Logic', 'flexi-revive-cart' ); ?></h2></div>
+							<div class="postbox-header"><h2 class="hndle"><?php esc_html_e( 'Get Pro Add-on', 'flexi-revive-cart' ); ?></h2></div>
 							<div class="inside">
-								<p style="font-size:12px;"><?php esc_html_e( 'Show discount block only for high-value carts by using A/B test variants. Configure conditions in A/B Results.', 'flexi-revive-cart' ); ?></p>
-							</div>
-						</div>
-						<?php else : ?>
-						<div class="postbox">
-							<div class="postbox-header"><h2 class="hndle"><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></h2></div>
-							<div class="inside">
-								<p style="font-size:12px;"><?php esc_html_e( 'Pro unlocks urgency/incentive templates, A/B testing, conditional logic, SMS/WhatsApp messages, coupon features, and advanced analytics.', 'flexi-revive-cart' ); ?></p>
-								<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" rel="noopener noreferrer" class="button button-primary"><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></a>
+								<p style="font-size:12px;"><?php esc_html_e( 'The Pro add-on unlocks urgency/incentive templates, A/B testing, conditional logic, SMS/WhatsApp messages, coupon features, and advanced analytics.', 'flexi-revive-cart' ); ?></p>
+								<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" rel="noopener noreferrer" class="button button-primary"><?php esc_html_e( 'Get Pro', 'flexi-revive-cart' ); ?></a>
 							</div>
 						</div>
 						<?php endif; ?>

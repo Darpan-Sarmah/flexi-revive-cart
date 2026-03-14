@@ -96,10 +96,15 @@ class FRC_Cart_Recovery {
 			WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation );
 		}
 
-		// Apply discount coupon (Pro feature, only when auto-apply is enabled).
-		if ( FRC_PRO_ACTIVE && ! empty( $cart->discount_code ) && get_option( 'frc_auto_apply_coupon', '1' ) ) {
-			WC()->cart->apply_coupon( sanitize_text_field( $cart->discount_code ) );
-		}
+		// Apply discount coupon via hook (Pro feature).
+		/**
+		 * Fires after cart items are restored, before redirect.
+		 *
+		 * Pro can use this to apply discount coupons or perform other actions.
+		 *
+		 * @param object $cart The cart database row.
+		 */
+		do_action( 'frc_cart_restored', $cart );
 
 		// Determine recovery channel from query string.
 		$channel = isset( $_GET['frc_channel'] ) ? sanitize_key( wp_unslash( $_GET['frc_channel'] ) ) : 'email'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -133,6 +138,14 @@ class FRC_Cart_Recovery {
 		}
 
 		wc_add_notice( __( 'Your cart has been restored! Complete your purchase below.', 'flexi-revive-cart' ), 'success' );
+
+		/**
+		 * Fires after a cart has been fully recovered and marked in the database.
+		 *
+		 * @param object $cart    The cart database row.
+		 * @param string $channel The recovery channel (email, sms, whatsapp, etc.).
+		 */
+		do_action( 'frc_cart_recovered', $cart, $channel );
 
 		// Redirect to checkout.
 		wp_safe_redirect( wc_get_checkout_url() );

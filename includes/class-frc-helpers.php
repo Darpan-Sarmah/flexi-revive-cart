@@ -298,7 +298,7 @@ class FRC_Helpers {
 	}
 
 	/**
-	 * Sanitize a time unit value, respecting Free/Pro restrictions.
+	 * Sanitize a time unit value.
 	 *
 	 * @param string $value Input time unit.
 	 * @return string Valid time unit.
@@ -308,11 +308,6 @@ class FRC_Helpers {
 		$all_units = array_keys( self::get_all_time_units() );
 
 		if ( ! in_array( $value, $all_units, true ) ) {
-			return 'minutes';
-		}
-
-		// In Free version, restrict to free-only units.
-		if ( ! FRC_PRO_ACTIVE && in_array( $value, self::get_pro_time_units(), true ) ) {
 			return 'minutes';
 		}
 

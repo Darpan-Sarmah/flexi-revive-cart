@@ -27,8 +27,8 @@ class FRC_Admin_Dashboard {
 			<?php if ( ! FRC_PRO_ACTIVE ) : ?>
 			<div class="frc-pro-notice notice notice-info inline">
 				<p>
-					<?php esc_html_e( 'Upgrade to Pro for SMS, push notifications, A/B testing, exit-intent popups, and more!', 'flexi-revive-cart' ); ?>
-					<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" class="button button-primary" style="margin-left:10px;"><?php esc_html_e( 'Upgrade to Pro', 'flexi-revive-cart' ); ?></a>
+					<?php esc_html_e( 'Install the Pro add-on for SMS, push notifications, A/B testing, exit-intent popups, and more!', 'flexi-revive-cart' ); ?>
+					<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" class="button button-primary" style="margin-left:10px;"><?php esc_html_e( 'Get Pro', 'flexi-revive-cart' ); ?></a>
 				</p>
 			</div>
 			<?php endif; ?>
@@ -78,49 +78,17 @@ class FRC_Admin_Dashboard {
 				</div>
 			</div>
 
-			<?php if ( FRC_PRO_ACTIVE ) : ?>
-			<div class="frc-pro-section">
-				<h2><?php esc_html_e( 'A/B Test Summary', 'flexi-revive-cart' ); ?></h2>
-				<?php $this->render_ab_summary(); ?>
-			</div>
-			<?php endif; ?>
+			<?php
+			/**
+			 * Fires after the dashboard charts grid.
+			 *
+			 * Pro can use this hook to add additional dashboard sections
+			 * (e.g., A/B Test Summary, Channel Breakdown).
+			 */
+			do_action( 'frc_dashboard_after_charts' );
+			?>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Render A/B test winner summary.
-	 */
-	private function render_ab_summary() {
-		if ( ! class_exists( 'FRC_AB_Testing' ) ) {
-			return;
-		}
-		$ab_testing = new FRC_AB_Testing();
-		$results    = $ab_testing->get_results();
-
-		if ( empty( $results ) ) {
-			echo '<p>' . esc_html__( 'No A/B tests found.', 'flexi-revive-cart' ) . '</p>';
-			return;
-		}
-
-		echo '<table class="wp-list-table widefat striped"><thead><tr>';
-		echo '<th>' . esc_html__( 'Test Name', 'flexi-revive-cart' ) . '</th>';
-		echo '<th>' . esc_html__( 'Status', 'flexi-revive-cart' ) . '</th>';
-		echo '<th>' . esc_html__( 'Winner', 'flexi-revive-cart' ) . '</th>';
-		echo '<th>' . esc_html__( 'A Sent / Recovered', 'flexi-revive-cart' ) . '</th>';
-		echo '<th>' . esc_html__( 'B Sent / Recovered', 'flexi-revive-cart' ) . '</th>';
-		echo '</tr></thead><tbody>';
-
-		foreach ( $results as $test ) {
-			echo '<tr>';
-			echo '<td>' . esc_html( $test->test_name ) . '</td>';
-			echo '<td>' . esc_html( $test->status ) . '</td>';
-			echo '<td>' . esc_html( $test->winner ? strtoupper( $test->winner ) : '–' ) . '</td>';
-			echo '<td>' . esc_html( $test->variant_a_sent . ' / ' . $test->variant_a_recovered ) . '</td>';
-			echo '<td>' . esc_html( $test->variant_b_sent . ' / ' . $test->variant_b_recovered ) . '</td>';
-			echo '</tr>';
-		}
-		echo '</tbody></table>';
 	}
 
 	/**
