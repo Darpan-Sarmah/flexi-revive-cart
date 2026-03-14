@@ -49,7 +49,7 @@ class FRC_Admin_Email_Editor {
 
 			// In Free version, strip Pro-only placeholders and warn the admin.
 			if ( ! FRC_PRO_ACTIVE ) {
-				$pro_placeholders = array( 'discount_code', 'discount_amount', 'discount_expiry', 'cart_expiry', 'low_stock_alert' );
+				$pro_placeholders = FRC_Email_Templates::get_pro_only_placeholders();
 				$found_pro = array();
 				foreach ( $pro_placeholders as $pp ) {
 					if ( strpos( $content, '{' . $pp . '}' ) !== false || strpos( $subject, '{' . $pp . '}' ) !== false ) {
@@ -192,8 +192,8 @@ class FRC_Admin_Email_Editor {
 						<div class="frc-var-buttons" style="margin-bottom:12px;">
 							<strong><?php esc_html_e( 'Insert Variable:', 'flexi-revive-cart' ); ?></strong>
 							<?php
-							$pro_only_vars = array( 'discount_code', 'discount_amount', 'cart_expiry', 'low_stock_alert' );
-							$vars = array( 'user_name', 'cart_items', 'cart_total', 'recovery_link', 'cart_link', 'discount_code', 'discount_amount', 'store_name', 'abandoned_time', 'unsubscribe_link', 'cart_expiry', 'low_stock_alert' );
+							$pro_only_vars = FRC_Email_Templates::get_pro_only_placeholders();
+							$vars = array( 'user_name', 'cart_items', 'cart_total', 'recovery_link', 'cart_link', 'discount_code', 'discount_amount', 'discount_expiry', 'store_name', 'abandoned_time', 'unsubscribe_link', 'cart_expiry', 'low_stock_alert' );
 							foreach ( $vars as $var ) {
 								$is_pro_var = in_array( $var, $pro_only_vars, true );
 								if ( $is_pro_var && ! FRC_PRO_ACTIVE ) {
@@ -240,8 +240,13 @@ class FRC_Admin_Email_Editor {
 										<tr><td><code>{cart_total}</code></td><td><?php esc_html_e( 'Cart total (formatted)', 'flexi-revive-cart' ); ?></td></tr>
 										<tr><td><code>{recovery_link}</code></td><td><?php esc_html_e( 'Cart recovery URL', 'flexi-revive-cart' ); ?></td></tr>
 										<tr><td><code>{cart_link}</code></td><td><?php esc_html_e( 'Same as recovery_link', 'flexi-revive-cart' ); ?></td></tr>
-										<tr><td><code>{discount_code}</code></td><td><?php esc_html_e( 'Generated coupon code', 'flexi-revive-cart' ); ?></td></tr>
-										<tr><td><code>{discount_amount}</code></td><td><?php esc_html_e( 'Discount percentage (e.g. 10%)', 'flexi-revive-cart' ); ?></td></tr>
+										<?php if ( FRC_PRO_ACTIVE ) : ?>
+										<tr><td><code>{discount_code}</code></td><td><?php esc_html_e( 'Generated coupon code (Pro)', 'flexi-revive-cart' ); ?></td></tr>
+										<tr><td><code>{discount_amount}</code></td><td><?php esc_html_e( 'Discount percentage (Pro)', 'flexi-revive-cart' ); ?></td></tr>
+										<tr><td><code>{discount_expiry}</code></td><td><?php esc_html_e( 'Coupon expiry date (Pro)', 'flexi-revive-cart' ); ?></td></tr>
+										<tr><td><code>{cart_expiry}</code></td><td><?php esc_html_e( 'Cart expiry countdown (Pro)', 'flexi-revive-cart' ); ?></td></tr>
+										<tr><td><code>{low_stock_alert}</code></td><td><?php esc_html_e( 'Low stock warning (Pro)', 'flexi-revive-cart' ); ?></td></tr>
+										<?php endif; ?>
 										<tr><td><code>{store_name}</code></td><td><?php esc_html_e( 'Your store name', 'flexi-revive-cart' ); ?></td></tr>
 										<tr><td><code>{abandoned_time}</code></td><td><?php esc_html_e( 'Time since abandonment', 'flexi-revive-cart' ); ?></td></tr>
 										<tr><td><code>{unsubscribe_link}</code></td><td><?php esc_html_e( 'Opt-out URL', 'flexi-revive-cart' ); ?></td></tr>

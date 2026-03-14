@@ -644,6 +644,18 @@ class FRC_Email_Templates {
 	}
 
 	/**
+	 * Return the list of Pro-only placeholder names (without braces).
+	 *
+	 * These placeholders are stripped from templates in the Free version
+	 * and hidden from the email editor UI.
+	 *
+	 * @return array
+	 */
+	public static function get_pro_only_placeholders() {
+		return array( 'discount_code', 'discount_amount', 'discount_expiry', 'cart_expiry', 'low_stock_alert' );
+	}
+
+	/**
 	 * Validate and sanitize placeholders in email content based on template type.
 	 *
 	 * Pro-only discount placeholders are stripped from non-incentive templates.
@@ -656,7 +668,6 @@ class FRC_Email_Templates {
 	public static function validate_placeholders( $content, $template_id ) {
 		$allowed  = self::get_allowed_placeholders( $template_id );
 		$discount = array( 'discount_code', 'discount_amount', 'discount_expiry' );
-		$pro_only = array( 'discount_code', 'discount_amount', 'discount_expiry', 'cart_expiry', 'low_stock_alert' );
 
 		foreach ( $discount as $placeholder ) {
 			if ( in_array( $placeholder, $allowed, true ) ) {
@@ -671,7 +682,7 @@ class FRC_Email_Templates {
 
 		// In Free version, always strip all Pro-only placeholders regardless of template.
 		if ( ! FRC_PRO_ACTIVE ) {
-			foreach ( $pro_only as $placeholder ) {
+			foreach ( self::get_pro_only_placeholders() as $placeholder ) {
 				$content = str_replace( '{' . $placeholder . '}', '', $content );
 			}
 		}

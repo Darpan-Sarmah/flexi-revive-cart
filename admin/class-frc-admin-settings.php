@@ -432,7 +432,8 @@ class FRC_Admin_Settings {
 			<tr>
 				<th><?php esc_html_e( 'Auto-delete carts after', 'flexi-revive-cart' ); ?></th>
 				<td>
-					<input type="number" name="frc_auto_delete_interval" value="<?php echo esc_attr( get_option( 'frc_auto_delete_interval', get_option( 'frc_auto_delete_days', 90 ) ) ); ?>" min="1" class="small-text" />
+					<?php $auto_delete_fallback = get_option( 'frc_auto_delete_days', 90 ); ?>
+					<input type="number" name="frc_auto_delete_interval" value="<?php echo esc_attr( get_option( 'frc_auto_delete_interval', $auto_delete_fallback ) ); ?>" min="1" class="small-text" />
 					<?php $this->render_time_unit_select( 'frc_auto_delete_unit', get_option( 'frc_auto_delete_unit', 'days' ) ); ?>
 					<p class="description"><?php esc_html_e( 'Automatically delete abandoned cart data after this period.', 'flexi-revive-cart' ); ?></p>
 				</td>
