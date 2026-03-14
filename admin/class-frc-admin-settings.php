@@ -32,6 +32,10 @@ class FRC_Admin_Settings {
 		register_setting( 'frc_general', 'frc_auto_delete_days', array( 'sanitize_callback' => 'absint', 'default' => 90 ) );
 		register_setting( 'frc_general', 'frc_license_key', array( 'sanitize_callback' => 'sanitize_text_field' ) );
 
+		// Language.
+		register_setting( 'frc_language', 'frc_default_language', array( 'sanitize_callback' => array( $this, 'sanitize_language_code' ), 'default' => 'en' ) );
+		register_setting( 'frc_language', 'frc_admin_preview_language', array( 'sanitize_callback' => array( $this, 'sanitize_language_code' ), 'default' => '' ) );
+
 		// Email.
 		register_setting( 'frc_email', 'frc_enable_email_reminders', array( 'sanitize_callback' => 'absint', 'default' => 1 ) );
 		register_setting( 'frc_email', 'frc_num_reminders', array( 'sanitize_callback' => 'absint', 'default' => 3 ) );
@@ -112,6 +116,20 @@ class FRC_Admin_Settings {
 	}
 
 	/**
+	 * Sanitize a language code against supported languages.
+	 *
+	 * @param mixed $value Input value.
+	 * @return string Valid language code or 'en'.
+	 */
+	public function sanitize_language_code( $value ) {
+		$value = sanitize_text_field( $value );
+		if ( '' === $value ) {
+			return '';
+		}
+		return FRC_Email_Templates::validate_lang( $value );
+	}
+
+	/**
 	 * Sanitize the discount type option.
 	 *
 	 * @param mixed $value Input value.
@@ -186,8 +204,9 @@ class FRC_Admin_Settings {
 				<?php
 				$tabs = array(
 					'general'    => __( 'General', 'flexi-revive-cart' ),
+					'language'   => __( 'Language', 'flexi-revive-cart' ),
 					'email'      => __( 'Email', 'flexi-revive-cart' ),
-					'discount'   => __( 'Discounts', 'flexi-revive-cart' ),
+					'discount'   => __( 'Discounts' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
 					'sms'        => __( 'SMS' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
 					'whatsapp'   => __( 'WhatsApp' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
 					'push'       => __( 'Push' . ( ! FRC_PRO_ACTIVE ? ' (Pro)' : '' ), 'flexi-revive-cart' ),
@@ -208,6 +227,10 @@ class FRC_Admin_Settings {
 					case 'general':
 						settings_fields( 'frc_general' );
 						$this->render_general_settings();
+						break;
+					case 'language':
+						settings_fields( 'frc_language' );
+						$this->render_language_settings();
 						break;
 					case 'email':
 						settings_fields( 'frc_email' );
@@ -246,6 +269,62 @@ class FRC_Admin_Settings {
 		<?php
 	}
 
+	/** Render Language Settings tab. */
+	private function render_language_settings() {
+		$languages    = FRC_Email_Templates::get_supported_languages();
+		$default_lang = get_option( 'frc_default_language', 'en' );
+		$preview_lang = get_option( 'frc_admin_preview_language', '' );
+		?>
+		<h3><?php esc_html_e( 'Language Settings', 'flexi-revive-cart' ); ?></h3>
+		<p class="description"><?php esc_html_e( 'Configure the default language for new users/guests and the admin preview language for testing emails and templates.', 'flexi-revive-cart' ); ?></p>
+
+		<table class="form-table">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Default Language', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select name="frc_default_language">
+						<?php foreach ( $languages as $code => $label ) : ?>
+						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $code, $default_lang ); ?>><?php echo esc_html( $label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<p class="description"><?php esc_html_e( 'Default language for new users and guests. Email templates and frontend strings will use this language unless the user has selected a different one.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Admin Preview Language', 'flexi-revive-cart' ); ?></th>
+				<td>
+					<select name="frc_admin_preview_language">
+						<option value=""><?php esc_html_e( '— Use default language —', 'flexi-revive-cart' ); ?></option>
+						<?php foreach ( $languages as $code => $label ) : ?>
+						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $code, $preview_lang ); ?>><?php echo esc_html( $label ); ?></option>
+						<?php endforeach; ?>
+					</select>
+					<p class="description"><?php esc_html_e( 'Override the language for admin previews and test emails. This allows you to preview how emails look in different languages without changing the default language.', 'flexi-revive-cart' ); ?></p>
+				</td>
+			</tr>
+		</table>
+
+		<h3><?php esc_html_e( 'Supported Languages', 'flexi-revive-cart' ); ?></h3>
+		<table class="widefat striped" style="max-width:500px;">
+			<thead>
+				<tr>
+					<th><?php esc_html_e( 'Code', 'flexi-revive-cart' ); ?></th>
+					<th><?php esc_html_e( 'Language', 'flexi-revive-cart' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $languages as $code => $label ) : ?>
+				<tr>
+					<td><code><?php echo esc_html( $code ); ?></code></td>
+					<td><?php echo esc_html( $label ); ?></td>
+				</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<p class="description"><?php esc_html_e( 'Translations fallback to English (en) if a translation is missing for the selected language.', 'flexi-revive-cart' ); ?></p>
+		<?php
+	}
+
 	/** Render General Settings tab. */
 	private function render_general_settings() {
 		?>
@@ -277,7 +356,9 @@ class FRC_Admin_Settings {
 
 	/** Render Email Settings tab. */
 	private function render_email_settings() {
-		$intervals = get_option( 'frc_reminder_intervals', array( 1, 6, 24 ) );
+		$intervals     = get_option( 'frc_reminder_intervals', array( 1, 6, 24 ) );
+		$num_reminders = (int) get_option( 'frc_num_reminders', 3 );
+		$max_reminders = FRC_PRO_ACTIVE ? 10 : 1;
 		?>
 		<table class="form-table">
 			<tr>
@@ -287,9 +368,11 @@ class FRC_Admin_Settings {
 			<tr>
 				<th><?php esc_html_e( 'Number of Reminders', 'flexi-revive-cart' ); ?></th>
 				<td>
-					<input type="number" name="frc_num_reminders" value="<?php echo esc_attr( get_option( 'frc_num_reminders', 3 ) ); ?>" min="1" max="<?php echo FRC_PRO_ACTIVE ? 10 : 1; ?>" class="small-text" />
+					<input type="number" id="frc-num-reminders" name="frc_num_reminders" value="<?php echo esc_attr( $num_reminders ); ?>" min="1" max="<?php echo esc_attr( $max_reminders ); ?>" class="small-text" />
 					<?php if ( ! FRC_PRO_ACTIVE ) : ?>
-					<p class="description"><?php esc_html_e( 'Free version is limited to 1 friendly reminder. Upgrade to Pro for urgency/incentive emails and unlimited reminders.', 'flexi-revive-cart' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Free version is limited to 1 friendly reminder. Upgrade to Pro for urgency/incentive emails and up to 10 reminders.', 'flexi-revive-cart' ); ?></p>
+					<?php else : ?>
+					<p class="description"><?php esc_html_e( 'Set up to 10 reminder emails. Each reminder has its own delay interval below.', 'flexi-revive-cart' ); ?></p>
 					<?php endif; ?>
 				</td>
 			</tr>
@@ -315,12 +398,48 @@ class FRC_Admin_Settings {
 					</p>
 				</td>
 			</tr>
-			<?php for ( $i = 1; $i <= 3; $i++ ) : ?>
-			<tr>
-				<th><?php echo esc_html( sprintf( __( 'Reminder %d – Send After (hours)', 'flexi-revive-cart' ), $i ) ); ?></th>
-				<td><input type="number" name="frc_reminder_intervals[<?php echo esc_attr( $i - 1 ); ?>]" value="<?php echo esc_attr( isset( $intervals[ $i - 1 ] ) ? $intervals[ $i - 1 ] : 1 ); ?>" min="1" class="small-text" /></td>
+		</table>
+
+		<h3><?php esc_html_e( 'Reminder Intervals', 'flexi-revive-cart' ); ?></h3>
+		<p class="description"><?php esc_html_e( 'Configure the delay (in hours) after cart abandonment for each reminder. Add more reminders by increasing the "Number of Reminders" above.', 'flexi-revive-cart' ); ?></p>
+
+		<table class="form-table" id="frc-reminder-intervals">
+			<?php
+			// Default intervals for stages beyond 3.
+			$default_intervals = array( 1, 6, 24, 48, 72, 96, 120, 144, 168, 192 );
+			$display_count     = max( $num_reminders, count( $intervals ) );
+			$display_count     = min( $display_count, $max_reminders );
+
+			for ( $i = 1; $i <= $display_count; $i++ ) :
+				$interval_val = isset( $intervals[ $i - 1 ] ) ? $intervals[ $i - 1 ] : ( isset( $default_intervals[ $i - 1 ] ) ? $default_intervals[ $i - 1 ] : ( $i * 24 ) );
+				$stage_label  = '';
+				if ( 1 === $i ) {
+					$stage_label = __( '(Friendly Reminder)', 'flexi-revive-cart' );
+				} elseif ( 2 === $i ) {
+					$stage_label = __( '(Urgency Reminder)', 'flexi-revive-cart' );
+				} elseif ( 3 === $i ) {
+					$stage_label = __( '(Incentive/Discount)', 'flexi-revive-cart' );
+				}
+			?>
+			<tr class="frc-reminder-row" data-reminder="<?php echo esc_attr( $i ); ?>">
+				<th>
+					<?php
+					echo esc_html( sprintf(
+						/* translators: %d: reminder number */
+						__( 'Reminder %d – Send After (hours)', 'flexi-revive-cart' ),
+						$i
+					) );
+					if ( $stage_label ) {
+						echo ' <em>' . esc_html( $stage_label ) . '</em>';
+					}
+					?>
+				</th>
+				<td><input type="number" name="frc_reminder_intervals[<?php echo esc_attr( $i - 1 ); ?>]" value="<?php echo esc_attr( $interval_val ); ?>" min="1" class="small-text" /></td>
 			</tr>
 			<?php endfor; ?>
+		</table>
+
+		<table class="form-table">
 			<tr>
 				<th><?php esc_html_e( 'Send Test Email', 'flexi-revive-cart' ); ?></th>
 				<td>
@@ -331,6 +450,19 @@ class FRC_Admin_Settings {
 						<option value="2"><?php esc_html_e( 'Stage 2 – Urgency', 'flexi-revive-cart' ); ?></option>
 						<option value="3"><?php esc_html_e( 'Stage 3 – Incentive', 'flexi-revive-cart' ); ?></option>
 						<?php endif; ?>
+					</select>
+					<?php
+					// Add language dropdown for test email preview.
+					$languages    = FRC_Email_Templates::get_supported_languages();
+					$preview_lang = get_option( 'frc_admin_preview_language', '' );
+					if ( empty( $preview_lang ) ) {
+						$preview_lang = get_option( 'frc_default_language', 'en' );
+					}
+					?>
+					<select id="frc-test-email-lang">
+						<?php foreach ( $languages as $code => $label ) : ?>
+						<option value="<?php echo esc_attr( $code ); ?>" <?php selected( $code, $preview_lang ); ?>><?php echo esc_html( $label ); ?></option>
+						<?php endforeach; ?>
 					</select>
 					<?php if ( ! FRC_PRO_ACTIVE ) : ?>
 					<span class="description" style="color:#d63638;"><?php esc_html_e( 'Free version: only friendly reminder test emails are available.', 'flexi-revive-cart' ); ?></span>
