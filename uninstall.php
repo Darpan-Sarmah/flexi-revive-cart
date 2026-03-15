@@ -51,6 +51,8 @@ if ( function_exists( 'as_unschedule_all_actions' ) ) {
 	foreach ( $cron_hooks as $hook ) {
 		as_unschedule_all_actions( $hook );
 	}
+	// Also cancel individual reminder actions scheduled via Action Scheduler.
+	as_unschedule_all_actions( 'frc_send_reminder' );
 }
 
 // Delete all FRC-generated coupons.

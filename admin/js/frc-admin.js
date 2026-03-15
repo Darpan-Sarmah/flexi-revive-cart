@@ -10,6 +10,7 @@
 		var $btn    = $( this );
 		var to      = $( '#frc-test-email-to' ).val();
 		var stage   = $( '#frc-test-email-stage' ).val();
+		var lang    = $( '#frc-test-email-lang' ).val();
 		var $result = $( '#frc-test-email-result' );
 
 		// Free version: block stages 2 & 3 on the client side as well.
@@ -27,6 +28,7 @@
 				nonce  : frcAdmin.nonce,
 				to     : to,
 				stage  : stage,
+				lang   : lang,
 			},
 			function ( response ) {
 				if ( response.success ) {

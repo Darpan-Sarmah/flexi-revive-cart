@@ -133,22 +133,45 @@ class FRC_Admin_Dashboard {
 	public function get_chart_data() {
 		global $wpdb;
 
-		// Line chart: abandoned vs recovered last 30 days.
+		$start_datetime = gmdate( 'Y-m-d', strtotime( '-29 days' ) ) . ' 00:00:00';
+
+		// Line chart: abandoned vs recovered last 30 days (batch query).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$abandoned_rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT DATE(abandoned_at) as d, COUNT(*) as c FROM {$wpdb->prefix}frc_abandoned_carts
+			 WHERE abandoned_at >= %s AND status IN ('abandoned','expired')
+			 GROUP BY DATE(abandoned_at)",
+			$start_datetime
+		) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$recovered_rows = $wpdb->get_results( $wpdb->prepare(
+			"SELECT DATE(recovered_at) as d, COUNT(*) as c FROM {$wpdb->prefix}frc_abandoned_carts
+			 WHERE recovered_at >= %s AND status IN ('recovered','converted')
+			 GROUP BY DATE(recovered_at)",
+			$start_datetime
+		) );
+
+		$abandoned_map = array();
+		if ( is_array( $abandoned_rows ) ) {
+			foreach ( $abandoned_rows as $row ) {
+				$abandoned_map[ $row->d ] = (int) $row->c;
+			}
+		}
+		$recovered_map = array();
+		if ( is_array( $recovered_rows ) ) {
+			foreach ( $recovered_rows as $row ) {
+				$recovered_map[ $row->d ] = (int) $row->c;
+			}
+		}
+
 		$dates     = array();
 		$abandoned = array();
 		$recovered = array();
-
 		for ( $i = 29; $i >= 0; $i-- ) {
 			$date        = gmdate( 'Y-m-d', strtotime( "-{$i} days" ) );
 			$dates[]     = $date;
-			$abandoned[] = (int) $wpdb->get_var( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				"SELECT COUNT(*) FROM {$wpdb->prefix}frc_abandoned_carts WHERE DATE(abandoned_at) = %s AND status IN ('abandoned','expired')",
-				$date
-			) );
-			$recovered[] = (int) $wpdb->get_var( $wpdb->prepare( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-				"SELECT COUNT(*) FROM {$wpdb->prefix}frc_abandoned_carts WHERE DATE(recovered_at) = %s AND status IN ('recovered','converted')",
-				$date
-			) );
+			$abandoned[] = isset( $abandoned_map[ $date ] ) ? $abandoned_map[ $date ] : 0;
+			$recovered[] = isset( $recovered_map[ $date ] ) ? $recovered_map[ $date ] : 0;
 		}
 
 		// Pie chart: channel breakdown.
