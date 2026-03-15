@@ -165,6 +165,7 @@ function frc_ajax_cleanup_data() {
 		return;
 	}
 
+	// 120 s is long enough for the browser redirect to the deactivation URL.
 	set_transient( 'frc_cleanup_on_deactivate', true, 120 );
 
 	wp_send_json_success();
