@@ -133,31 +133,35 @@ class FRC_Admin_Dashboard {
 	public function get_chart_data() {
 		global $wpdb;
 
-		$start_date = gmdate( 'Y-m-d', strtotime( '-29 days' ) );
+		$start_datetime = gmdate( 'Y-m-d', strtotime( '-29 days' ) ) . ' 00:00:00';
 
 		// Line chart: abandoned vs recovered last 30 days (batch query).
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$abandoned_rows = $wpdb->get_results( $wpdb->prepare(
 			"SELECT DATE(abandoned_at) as d, COUNT(*) as c FROM {$wpdb->prefix}frc_abandoned_carts
-			 WHERE DATE(abandoned_at) >= %s AND status IN ('abandoned','expired')
+			 WHERE abandoned_at >= %s AND status IN ('abandoned','expired')
 			 GROUP BY DATE(abandoned_at)",
-			$start_date
+			$start_datetime
 		) );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$recovered_rows = $wpdb->get_results( $wpdb->prepare(
 			"SELECT DATE(recovered_at) as d, COUNT(*) as c FROM {$wpdb->prefix}frc_abandoned_carts
-			 WHERE DATE(recovered_at) >= %s AND status IN ('recovered','converted')
+			 WHERE recovered_at >= %s AND status IN ('recovered','converted')
 			 GROUP BY DATE(recovered_at)",
-			$start_date
+			$start_datetime
 		) );
 
 		$abandoned_map = array();
-		foreach ( $abandoned_rows as $row ) {
-			$abandoned_map[ $row->d ] = (int) $row->c;
+		if ( is_array( $abandoned_rows ) ) {
+			foreach ( $abandoned_rows as $row ) {
+				$abandoned_map[ $row->d ] = (int) $row->c;
+			}
 		}
 		$recovered_map = array();
-		foreach ( $recovered_rows as $row ) {
-			$recovered_map[ $row->d ] = (int) $row->c;
+		if ( is_array( $recovered_rows ) ) {
+			foreach ( $recovered_rows as $row ) {
+				$recovered_map[ $row->d ] = (int) $row->c;
+			}
 		}
 
 		$dates     = array();
