@@ -149,7 +149,13 @@ function frc_enqueue_deactivation_assets( $hook ) {
 add_action( 'admin_enqueue_scripts', 'frc_enqueue_deactivation_assets' );
 
 /**
- * AJAX handler: delete all plugin data before deactivation.
+ * AJAX handler: flag that data should be deleted on deactivation.
+ *
+ * Instead of deleting data immediately (which would be undone by
+ * maybe_upgrade_db() on the subsequent deactivation page load),
+ * we set a short-lived transient.  The deactivation hook reads
+ * the flag and performs the actual cleanup after plugins_loaded
+ * has already finished, so no code can re-create the tables.
  */
 function frc_ajax_cleanup_data() {
 	check_ajax_referer( 'frc_deactivate_cleanup', 'nonce' );
@@ -159,8 +165,8 @@ function frc_ajax_cleanup_data() {
 		return;
 	}
 
-	require_once FRC_PLUGIN_DIR . 'includes/class-frc-deactivator.php';
-	FRC_Deactivator::cleanup_data();
+	// 120 s is long enough for the browser redirect to the deactivation URL.
+	set_transient( 'frc_cleanup_on_deactivate', true, 120 );
 
 	wp_send_json_success();
 }
@@ -212,10 +218,21 @@ register_activation_hook( __FILE__, 'frc_activate_plugin' );
 
 /**
  * Deactivation hook.
+ *
+ * Always clears cron jobs.  When the user chose "Delete All Data"
+ * in the deactivation modal (recorded via a transient), also
+ * removes database tables, options, coupons, and Action Scheduler
+ * actions.  Running cleanup here – after plugins_loaded – prevents
+ * maybe_upgrade_db() from re-creating the tables it just deleted.
  */
 function frc_deactivate_plugin() {
 	require_once FRC_PLUGIN_DIR . 'includes/class-frc-deactivator.php';
 	FRC_Deactivator::deactivate();
+
+	if ( get_transient( 'frc_cleanup_on_deactivate' ) ) {
+		delete_transient( 'frc_cleanup_on_deactivate' );
+		FRC_Deactivator::cleanup_data();
+	}
 }
 register_deactivation_hook( __FILE__, 'frc_deactivate_plugin' );
 
