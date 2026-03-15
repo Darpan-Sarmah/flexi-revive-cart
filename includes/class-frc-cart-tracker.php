@@ -90,7 +90,21 @@ class FRC_Cart_Tracker {
 		check_ajax_referer( 'frc_track_cart_nonce', 'nonce' );
 
 		$cart_total    = isset( $_POST['cart_total'] ) ? floatval( wp_unslash( $_POST['cart_total'] ) ) : 0;
-		$cart_contents = isset( $_POST['cart_contents'] ) ? sanitize_text_field( wp_unslash( $_POST['cart_contents'] ) ) : '';
+		$cart_contents = '';
+
+		if ( isset( $_POST['cart_contents'] ) ) {
+			// cart_contents is a JSON string. Do NOT use sanitize_text_field() here as it
+			// strips < / > characters that can legitimately appear in JSON-encoded HTML
+			// (e.g. product names, image URLs). Validate it is well-formed JSON instead.
+			$raw = wp_unslash( $_POST['cart_contents'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			if ( is_string( $raw ) ) {
+				$decoded = json_decode( $raw, true );
+				if ( is_array( $decoded ) ) {
+					// Re-encode to ensure we only store clean, normalised JSON.
+					$cart_contents = wp_json_encode( $decoded );
+				}
+			}
+		}
 
 		if ( $cart_total <= 0 ) {
 			wp_send_json_error( array( 'message' => 'Empty cart' ) );
@@ -244,7 +258,12 @@ class FRC_Cart_Tracker {
 			$data['created_at']     = current_time( 'mysql' );
 			$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$wpdb->prefix . 'frc_abandoned_carts',
-				$data
+				$data,
+				// Format order matches $data key order:
+				// user_id(%d), user_email(%s), session_key(%s), cart_contents(%s),
+				// cart_total(%f), currency(%s), ip_address(%s), user_agent(%s),
+				// language(%s), abandoned_at(%s), recovery_token(%s), status(%s), created_at(%s).
+				array( '%d', '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
 			);
 		}
 	}

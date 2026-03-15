@@ -169,6 +169,14 @@ class FRC_Email_Manager {
 		$from_name  = get_option( 'frc_from_name', get_bloginfo( 'name' ) );
 		$from_email = get_option( 'frc_from_email', get_option( 'admin_email' ) );
 
+		// Strip newlines/carriage-returns to prevent email header injection.
+		$from_name = str_replace( array( "\r", "\n" ), '', $from_name );
+
+		// Fall back to the site admin email if the stored value is not a valid address.
+		if ( ! is_email( $from_email ) ) {
+			$from_email = get_option( 'admin_email' );
+		}
+
 		$headers = array(
 			'Content-Type: text/html; charset=UTF-8',
 			'From: ' . $from_name . ' <' . $from_email . '>',

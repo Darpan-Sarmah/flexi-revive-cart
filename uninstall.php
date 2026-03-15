@@ -26,7 +26,10 @@ foreach ( $tables as $table ) {
 }
 
 // Delete all plugin options with frc_ prefix.
-$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'frc_%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+$wpdb->query(
+	$wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $wpdb->esc_like( 'frc_' ) . '%' )
+);
 
 // Delete scheduled cron jobs.
 $cron_hooks = array(
@@ -52,7 +55,10 @@ if ( function_exists( 'as_unschedule_all_actions' ) ) {
 
 // Delete all FRC-generated coupons.
 $coupon_ids = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-	"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'shop_coupon' AND post_title LIKE 'frc_%'"
+	$wpdb->prepare(
+		"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'shop_coupon' AND post_title LIKE %s",
+		$wpdb->esc_like( 'frc_' ) . '%'
+	)
 );
 
 if ( ! empty( $coupon_ids ) ) {

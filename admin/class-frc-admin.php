@@ -392,7 +392,8 @@ class FRC_Admin {
 			return;
 		}
 
-		$stage         = min( (int) $cart->emails_sent + 1, 3 );
+		$max_stage     = min( (int) get_option( 'frc_num_reminders', 3 ), apply_filters( 'frc_max_reminders', 3 ) );
+		$stage         = min( (int) $cart->emails_sent + 1, $max_stage );
 		$email_manager = new FRC_Email_Manager();
 		$sent          = $email_manager->send_reminder( $cart, $stage );
 
