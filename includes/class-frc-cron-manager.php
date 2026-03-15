@@ -63,6 +63,10 @@ class FRC_Cron_Manager {
 		$timeout_seconds  = FRC_Helpers::convert_to_seconds( $timeout, $timeout_unit );
 		$interval_seconds = FRC_Helpers::convert_to_seconds( $interval, $interval_unit );
 
+		// Use wp_date() so the cutoff is in the same timezone as the stored
+		// abandoned_at values (which are written via current_time( 'mysql' )).
+		$cutoff = wp_date( 'Y-m-d H:i:s', time() - $timeout_seconds );
+
 		// Fetch abandoned carts not yet expired or recovered, in batches of 20.
 		$carts = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->prepare(
@@ -72,7 +76,7 @@ class FRC_Cron_Manager {
 				   AND abandoned_at <= %s
 				 ORDER BY abandoned_at ASC
 				 LIMIT 20",
-				gmdate( 'Y-m-d H:i:s', time() - $timeout_seconds )
+				$cutoff
 			)
 		);
 
@@ -108,7 +112,8 @@ class FRC_Cron_Manager {
 			$max_reminders_count = apply_filters( 'frc_max_reminders', 3 );
 			$max_reminders_count = min( (int) get_option( 'frc_num_reminders', 3 ), $max_reminders_count );
 			$expire_after        = ( $interval_seconds * $max_reminders_count ) + DAY_IN_SECONDS;
-			if ( ( time() - strtotime( $cart->abandoned_at ) ) > $expire_after ) {
+			$abandoned_ts        = (int) get_gmt_from_date( $cart->abandoned_at, 'U' );
+			if ( ( time() - $abandoned_ts ) > $expire_after ) {
 				$wpdb->update( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 					$wpdb->prefix . 'frc_abandoned_carts',
 					array( 'status' => 'expired' ),
@@ -137,7 +142,10 @@ class FRC_Cron_Manager {
 			return false;
 		}
 
-		$due_after = strtotime( $cart->abandoned_at ) + ( $interval_seconds * $next_stage );
+		// abandoned_at is stored in local time via current_time( 'mysql' ).
+		// Convert to a UTC timestamp so the comparison with time() is correct.
+		$abandoned_ts = (int) get_gmt_from_date( $cart->abandoned_at, 'U' );
+		$due_after    = $abandoned_ts + ( $interval_seconds * $next_stage );
 
 		if ( time() >= $due_after ) {
 			return $next_stage;
@@ -208,7 +216,8 @@ class FRC_Cron_Manager {
 		}
 
 		$retention_seconds = FRC_Helpers::convert_to_seconds( $retention_value, $retention_unit );
-		$cutoff            = gmdate( 'Y-m-d H:i:s', time() - $retention_seconds );
+		// Use wp_date() so the cutoff matches the timezone of stored datetime values.
+		$cutoff            = wp_date( 'Y-m-d H:i:s', time() - $retention_seconds );
 
 		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
 			$wpdb->prepare(
