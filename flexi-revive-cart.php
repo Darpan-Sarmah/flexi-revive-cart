@@ -30,15 +30,13 @@ define( 'FRC_VERSION', '1.0.0' );
 define( 'FRC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FRC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'FRC_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
-define( 'FRC_PRO_ACTIVE', defined( 'FRC_PRO_VERSION' ) );
 
 /**
  * Check if the Pro add-on is active AND has a valid license.
  *
  * This is the authoritative check for Pro feature availability.
- * Unlike the FRC_PRO_ACTIVE constant (which only checks if the constant
- * exists at load time), this function also verifies the Pro add-on has
- * confirmed its license via the frc_pro_license_valid filter.
+ * It verifies both that the Pro add-on is loaded (FRC_PRO_VERSION defined)
+ * and that it has confirmed its license via the frc_pro_license_valid filter.
  *
  * Security: Simply defining FRC_PRO_VERSION in wp-config.php will NOT
  * unlock Pro features because the frc_pro_license_valid filter will
