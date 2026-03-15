@@ -150,9 +150,9 @@ class FRC_Admin {
 		if ( 'toplevel_page_flexi-revive-cart' === $hook ) {
 			wp_enqueue_script(
 				'chartjs',
-				'https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js',
+				FRC_PLUGIN_URL . 'admin/js/chart.min.js',
 				array(),
-				'4.0.0',
+				'4.5.1',
 				true
 			);
 

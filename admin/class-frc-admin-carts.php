@@ -316,7 +316,10 @@ class FRC_Admin_Carts extends WP_List_Table {
 
 		// Order.
 		$orderby = isset( $_REQUEST['orderby'] ) ? sanitize_sql_orderby( wp_unslash( $_REQUEST['orderby'] ) ) : 'id'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		$order   = isset( $_REQUEST['order'] ) && 'asc' === strtolower( wp_unslash( $_REQUEST['order'] ) ) ? 'ASC' : 'DESC'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! $orderby ) {
+			$orderby = 'id';
+		}
+		$order   = isset( $_REQUEST['order'] ) && 'asc' === strtolower( sanitize_key( wp_unslash( $_REQUEST['order'] ) ) ) ? 'ASC' : 'DESC'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		$allowed_orderby = array( 'id', 'cart_total', 'abandoned_at' );
 		if ( ! in_array( $orderby, $allowed_orderby, true ) ) {

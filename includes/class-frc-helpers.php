@@ -57,7 +57,9 @@ class FRC_Helpers {
 	 * @return string
 	 */
 	public static function time_ago( $datetime_str ) {
-		$timestamp = strtotime( $datetime_str );
+		// The datetime string is in WordPress local time (stored via current_time( 'mysql' )).
+		// Convert to a UTC timestamp so the comparison with time() is correct.
+		$timestamp = (int) get_gmt_from_date( $datetime_str, 'U' );
 		if ( ! $timestamp ) {
 			return '';
 		}
