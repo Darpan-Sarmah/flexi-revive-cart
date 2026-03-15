@@ -13,6 +13,7 @@
  * Requires at least: 6.0
  * Tested up to: 6.7
  * Requires PHP: 7.4
+ * Requires Plugins: woocommerce
  * WC requires at least: 7.0
  * WC tested up to: 9.5
  *
@@ -73,6 +74,97 @@ function frc_woocommerce_missing_notice() {
 		esc_html__( 'Flexi Revive Cart requires WooCommerce to be installed and active.', 'flexi-revive-cart' ) .
 		'</p></div>';
 }
+
+/**
+ * Auto-deactivate this plugin when WooCommerce is no longer active.
+ *
+ * Runs on admin_init so it catches the case where a user deactivates
+ * WooCommerce while Flexi Revive Cart is still active.
+ */
+function frc_check_wc_still_active() {
+	if ( ! frc_is_woocommerce_active() && is_plugin_active( plugin_basename( __FILE__ ) ) ) {
+		deactivate_plugins( plugin_basename( __FILE__ ) );
+		set_transient( 'frc_wc_deactivated_notice', true, 30 );
+	}
+}
+add_action( 'admin_init', 'frc_check_wc_still_active' );
+
+/**
+ * Show admin notice after auto-deactivation due to missing WooCommerce.
+ */
+function frc_wc_deactivated_notice() {
+	if ( get_transient( 'frc_wc_deactivated_notice' ) ) {
+		delete_transient( 'frc_wc_deactivated_notice' );
+		echo '<div class="notice notice-warning is-dismissible"><p>' .
+			esc_html__( 'Flexi Revive Cart has been deactivated because WooCommerce is no longer active.', 'flexi-revive-cart' ) .
+			'</p></div>';
+	}
+}
+add_action( 'admin_notices', 'frc_wc_deactivated_notice' );
+
+/**
+ * Enqueue the deactivation-feedback modal assets on the Plugins page.
+ *
+ * @param string $hook Current admin page hook.
+ */
+function frc_enqueue_deactivation_assets( $hook ) {
+	if ( 'plugins.php' !== $hook ) {
+		return;
+	}
+
+	wp_enqueue_style(
+		'frc-deactivate-modal',
+		FRC_PLUGIN_URL . 'admin/css/frc-deactivate-modal.css',
+		array(),
+		FRC_VERSION
+	);
+
+	wp_enqueue_script(
+		'frc-deactivate-modal',
+		FRC_PLUGIN_URL . 'admin/js/frc-deactivate-modal.js',
+		array( 'jquery' ),
+		FRC_VERSION,
+		true
+	);
+
+	wp_localize_script(
+		'frc-deactivate-modal',
+		'frcDeactivate',
+		array(
+			'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
+			'nonce'    => wp_create_nonce( 'frc_deactivate_cleanup' ),
+			'basename' => plugin_basename( __FILE__ ),
+			'i18n'     => array(
+				'title'      => __( 'Flexi Revive Cart – Deactivation', 'flexi-revive-cart' ),
+				'message'    => __( 'Would you like to delete all plugin data (database tables, settings, and generated coupons) or keep it for future use?', 'flexi-revive-cart' ),
+				'deleteBtn'  => __( 'Delete All Data & Deactivate', 'flexi-revive-cart' ),
+				'keepBtn'    => __( 'Keep Data & Deactivate', 'flexi-revive-cart' ),
+				'cancelBtn'  => __( 'Cancel', 'flexi-revive-cart' ),
+				'cleaning'   => __( 'Cleaning up…', 'flexi-revive-cart' ),
+				'cleanError' => __( 'Data cleanup failed. The plugin was not deactivated.', 'flexi-revive-cart' ),
+			),
+		)
+	);
+}
+add_action( 'admin_enqueue_scripts', 'frc_enqueue_deactivation_assets' );
+
+/**
+ * AJAX handler: delete all plugin data before deactivation.
+ */
+function frc_ajax_cleanup_data() {
+	check_ajax_referer( 'frc_deactivate_cleanup', 'nonce' );
+
+	if ( ! current_user_can( 'activate_plugins' ) ) {
+		wp_send_json_error( array( 'message' => __( 'Permission denied.', 'flexi-revive-cart' ) ) );
+		return;
+	}
+
+	require_once FRC_PLUGIN_DIR . 'includes/class-frc-deactivator.php';
+	FRC_Deactivator::cleanup_data();
+
+	wp_send_json_success();
+}
+add_action( 'wp_ajax_frc_cleanup_data', 'frc_ajax_cleanup_data' );
 
 // Load the plugin only if WooCommerce is active.
 add_action( 'plugins_loaded', 'frc_init_plugin' );
