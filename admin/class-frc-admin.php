@@ -137,7 +137,7 @@ class FRC_Admin {
 			array(
 				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
 				'nonce'     => wp_create_nonce( 'frc_admin_nonce' ),
-				'proActive' => FRC_PRO_ACTIVE,
+				'proActive' => frc_is_pro_licensed(),
 				'i18n'      => array(
 					'confirmDelete'  => __( 'Are you sure you want to delete this cart?', 'flexi-revive-cart' ),
 					'testEmailSent'  => __( 'Test email sent!', 'flexi-revive-cart' ),
@@ -192,7 +192,7 @@ class FRC_Admin {
 		$plugin_links = array(
 			'<a href="' . admin_url( 'admin.php?page=frc-settings' ) . '">' . __( 'Settings', 'flexi-revive-cart' ) . '</a>',
 		);
-		if ( ! FRC_PRO_ACTIVE ) {
+		if ( ! frc_is_pro_licensed() ) {
 			$plugin_links[] = '<a href="https://github.com/Darpan-Sarmah/flexi-revive-cart" target="_blank" style="color:#46b450;font-weight:bold;">' . __( 'Upgrade to Pro', 'flexi-revive-cart' ) . '</a>';
 		}
 		return array_merge( $plugin_links, $links );
