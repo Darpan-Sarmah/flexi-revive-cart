@@ -69,7 +69,9 @@ class FRC_Deactivator {
 
 		// Delete all plugin options with frc_ prefix.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'frc\_%'" );
+		$wpdb->query(
+			$wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", 'frc\_%' )
+		);
 
 		// Delete scheduled cron jobs.
 		$cron_hooks = array(
@@ -96,7 +98,10 @@ class FRC_Deactivator {
 		// Delete all FRC-generated coupons.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$coupon_ids = $wpdb->get_col(
-			"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'shop_coupon' AND post_title LIKE 'frc\_%'"
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'shop_coupon' AND post_title LIKE %s",
+				'frc\_%'
+			)
 		);
 
 		if ( ! empty( $coupon_ids ) ) {

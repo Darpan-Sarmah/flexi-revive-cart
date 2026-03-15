@@ -35,8 +35,9 @@
 
 		// Fallback: find any deactivate link within our plugin's row.
 		if ( ! $deactivateLink.length ) {
+			var pluginDir = pluginSlug.split( '/' )[ 0 ] || '';
 			$deactivateLink = $( 'tr[data-plugin="' + pluginSlug + '"] .deactivate a,' +
-				'tr[data-slug="flexi-revive-cart"] .deactivate a' );
+				'tr[data-slug="' + pluginDir + '"] .deactivate a' );
 		}
 
 		if ( ! $deactivateLink.length ) {
