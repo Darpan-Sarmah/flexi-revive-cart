@@ -36,6 +36,14 @@ class FRC_Admin_Carts extends WP_List_Table {
 	 * Render the page.
 	 */
 	public function render() {
+		// Handle CSV export before any output is generated.
+		if ( isset( $_GET['frc_export_csv'] ) && frc_is_pro_licensed() ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( isset( $_GET['_wpnonce'] ) && wp_verify_nonce( sanitize_key( wp_unslash( $_GET['_wpnonce'] ) ), 'frc_export_csv' ) ) {
+				$this->handle_csv_export();
+				exit;
+			}
+		}
+
 		$this->handle_bulk_actions();
 		$this->prepare_items();
 
@@ -60,6 +68,96 @@ class FRC_Admin_Carts extends WP_List_Table {
 			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Stream all abandoned cart records as a CSV download.
+	 *
+	 * Only reachable when `frc_is_pro_licensed()` returns true (the render()
+	 * method checks this before calling here).  The Pro add-on can extend the
+	 * column list via the `frc_export_csv_columns` filter and each row's values
+	 * via the `frc_export_csv_row` filter.
+	 */
+	private function handle_csv_export() {
+		global $wpdb;
+
+		/**
+		 * Filters the column headers used in the CSV export.
+		 *
+		 * Pro can add or reorder columns (e.g. 'recovery_channel', 'discount_code').
+		 *
+		 * @param array $columns Associative array of column_key => column_label.
+		 */
+		$columns = apply_filters(
+			'frc_export_csv_columns',
+			array(
+				'id'           => __( 'ID', 'flexi-revive-cart' ),
+				'user_email'   => __( 'Customer Email', 'flexi-revive-cart' ),
+				'cart_total'   => __( 'Cart Total', 'flexi-revive-cart' ),
+				'currency'     => __( 'Currency', 'flexi-revive-cart' ),
+				'status'       => __( 'Status', 'flexi-revive-cart' ),
+				'emails_sent'  => __( 'Emails Sent', 'flexi-revive-cart' ),
+				'abandoned_at' => __( 'Abandoned At', 'flexi-revive-cart' ),
+				'recovered_at' => __( 'Recovered At', 'flexi-revive-cart' ),
+			)
+		);
+
+		// Build WHERE clause from query-string filters (same as prepare_items).
+		// $where is only ever appended with literal SQL fragments containing %s placeholders;
+		// all user-supplied values go through $params and are handled by $wpdb->prepare().
+		$where  = '1=1';
+		$params = array();
+
+		$status = isset( $_REQUEST['status'] ) ? sanitize_key( wp_unslash( $_REQUEST['status'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( $status ) {
+			$where   .= ' AND status = %s';
+			$params[] = $status;
+		}
+
+		if ( ! empty( $params ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}frc_abandoned_carts WHERE {$where} ORDER BY id DESC", $params ) );
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$rows = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}frc_abandoned_carts WHERE {$where} ORDER BY id DESC" );
+		}
+
+		// sanitize_file_name() removes any characters that could be used for header injection.
+		$filename = sanitize_file_name( 'frc-abandoned-carts-' . gmdate( 'Y-m-d' ) . '.csv' );
+
+		header( 'Content-Type: text/csv; charset=UTF-8' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		header( 'Pragma: no-cache' );
+		header( 'Expires: 0' );
+
+		$output = fopen( 'php://output', 'w' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+
+		// UTF-8 BOM so Excel opens the file correctly.
+		fwrite( $output, "\xEF\xBB\xBF" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+
+		// Header row.
+		fputcsv( $output, array_values( $columns ) );
+
+		foreach ( $rows as $row ) {
+			$values = array();
+			foreach ( array_keys( $columns ) as $col ) {
+				$values[ $col ] = isset( $row->$col ) ? $row->$col : '';
+			}
+
+			/**
+			 * Filters a single CSV row before it is written.
+			 *
+			 * Pro can add extra columns that were registered via frc_export_csv_columns.
+			 *
+			 * @param array  $values Associative array of column_key => value.
+			 * @param object $row    The full database row.
+			 */
+			$values = apply_filters( 'frc_export_csv_row', $values, $row );
+
+			fputcsv( $output, array_values( $values ) );
+		}
+
+		fclose( $output ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 	}
 
 	/**
@@ -164,14 +262,15 @@ class FRC_Admin_Carts extends WP_List_Table {
 					'</p></div>';
 			} );
 		} elseif ( 'resend_reminder' === $action ) {
-			$sent  = 0;
+			$sent          = 0;
+			$max_stage     = min( (int) get_option( 'frc_num_reminders', 3 ), apply_filters( 'frc_max_reminders', 3 ) );
 			$email_manager = new FRC_Email_Manager();
 			foreach ( $cart_ids as $id ) {
 				$cart = FRC_Helpers::get_cart_by_id( $id );
 				if ( ! $cart ) {
 					continue;
 				}
-				$stage = min( (int) $cart->emails_sent + 1, 3 );
+				$stage = min( (int) $cart->emails_sent + 1, $max_stage );
 				if ( $email_manager->send_reminder( $cart, $stage ) ) {
 					$sent++;
 				}

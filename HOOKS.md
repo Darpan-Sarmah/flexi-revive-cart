@@ -69,6 +69,38 @@ add_filter( 'frc_admin_tabs', function( $tabs ) {
 });
 ```
 
+### `frc_export_csv_columns` (Filter)
+
+**Parameters:** `$columns` (array) – Associative array of `column_key => column_label`.
+
+**When It Fires:** When building the CSV export for the Abandoned Carts list (Pro users only).
+
+**Use Cases:** Pro add-ons can add or reorder columns (e.g. `recovery_channel`, `discount_code`).
+
+```php
+add_filter( 'frc_export_csv_columns', function( $columns ) {
+    $columns['recovery_channel'] = __( 'Recovery Channel', 'flexi-revive-cart-pro' );
+    $columns['discount_code']    = __( 'Discount Code', 'flexi-revive-cart-pro' );
+    return $columns;
+});
+```
+
+### `frc_export_csv_row` (Filter)
+
+**Parameters:** `$values` (array) – Associative `column_key => value` for the current row. `$row` (object) – Full database row.
+
+**When It Fires:** For each cart row written to the CSV download.
+
+**Use Cases:** Pro add-ons should hook here to populate any extra columns registered via `frc_export_csv_columns`.
+
+```php
+add_filter( 'frc_export_csv_row', function( $values, $row ) {
+    $values['recovery_channel'] = $row->recovery_channel ?? '';
+    $values['discount_code']    = $row->discount_code ?? '';
+    return $values;
+}, 10, 2 );
+```
+
 ### `frc_register_settings` (Action)
 
 **When It Fires:** After core settings are registered via `admin_init`. Pro add-ons should call `register_setting()` here.
